@@ -49,13 +49,13 @@ select
   links.description,
   links.icon,
   links.category,
-  links.lead_message,
   links.is_active,
   links.display_order,
   links.created_at,
   links.updated_at,
   count(link_clicks.id)::integer as click_count,
-  max(link_clicks.clicked_at) as last_clicked_at
+  max(link_clicks.clicked_at) as last_clicked_at,
+  links.lead_message
 from links
 left join link_clicks on link_clicks.link_id = links.id
 group by links.id;

@@ -20,7 +20,7 @@ export default function AdminPage() {
                 Painel administrativo
               </h1>
               <p className="mt-2 max-w-2xl text-slate-600 dark:text-slate-300">
-                Gerencie links, prioridades, status e acompanhe performance basica em uma interface direta.
+                Gerencie links, prioridades, status e acompanhe performance básica em uma interface direta.
               </p>
             </div>
           </div>
@@ -29,7 +29,7 @@ export default function AdminPage() {
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 dark:bg-sky-400 dark:text-slate-950 dark:hover:bg-sky-300"
           >
             <ArrowLeft className="h-4 w-4" />
-            Ver pagina publica
+            Ver página pública
           </Link>
         </header>
 

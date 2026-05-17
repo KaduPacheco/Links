@@ -9,10 +9,10 @@ export default function BlogPage() {
         <BrandMark className="justify-center" />
         <Newspaper className="mx-auto mt-8 h-12 w-12 text-blue-600 dark:text-sky-300" />
         <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">
-          Blog Ponto Eletronico
+          Blog Ponto Eletrônico
         </h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          Espaco preparado para artigos sobre jornada, ponto online, compliance trabalhista e gestao de equipes.
+          Espaço preparado para artigos sobre jornada, ponto online, compliance trabalhista e gestão de equipes.
         </p>
         <Link
           href="/"

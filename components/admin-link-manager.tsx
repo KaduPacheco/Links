@@ -39,7 +39,7 @@ export function AdminLinkManager() {
   }
 
   useEffect(() => {
-    loadLinks().catch(() => setMessage("Nao foi possivel carregar os links."));
+    loadLinks().catch(() => setMessage("Não foi possível carregar os links."));
   }, []);
 
   const sortedLinks = useMemo(
@@ -85,7 +85,7 @@ export function AdminLinkManager() {
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        setMessage(payload.error ?? "Nao foi possivel salvar o link.");
+        setMessage(payload.error ?? "Não foi possível salvar o link.");
         return;
       }
 
@@ -96,7 +96,7 @@ export function AdminLinkManager() {
   }
 
   async function removeLink(id: string) {
-    if (!window.confirm("Excluir este link? Esta acao nao pode ser desfeita.")) {
+    if (!window.confirm("Excluir este link? Esta ação não pode ser desfeita.")) {
       return;
     }
 
@@ -105,7 +105,7 @@ export function AdminLinkManager() {
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        setMessage(payload.error ?? "Nao foi possivel excluir o link.");
+        setMessage(payload.error ?? "Não foi possível excluir o link.");
         return;
       }
 
@@ -133,7 +133,7 @@ export function AdminLinkManager() {
 
       if (!response.ok) {
         const payload = (await response.json()) as { error?: string };
-        setMessage(payload.error ?? "Nao foi possivel atualizar o link.");
+        setMessage(payload.error ?? "Não foi possível atualizar o link.");
         return;
       }
 
@@ -146,17 +146,17 @@ export function AdminLinkManager() {
       <Card className="h-fit border-white/70 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90">
         <CardHeader>
           <CardTitle>{editingId ? "Editar link" : "Novo link"}</CardTitle>
-          <CardDescription>Cadastre canais oficiais, materiais e paginas de conversao da marca.</CardDescription>
+          <CardDescription>Cadastre canais oficiais, materiais e páginas de conversão da marca.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={saveLink}>
             <div className="space-y-2">
-              <Label htmlFor="title">Titulo</Label>
+              <Label htmlFor="title">Título</Label>
               <Input
                 id="title"
                 value={form.title}
                 onChange={(event) => setForm({ ...form, title: event.target.value })}
-                placeholder="Solicitar demonstracao"
+                placeholder="Solicitar demonstração"
                 required
               />
             </div>
@@ -173,7 +173,7 @@ export function AdminLinkManager() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Descricao curta</Label>
+              <Label htmlFor="description">Descrição curta</Label>
               <Textarea
                 id="description"
                 value={form.description ?? ""}
@@ -201,7 +201,7 @@ export function AdminLinkManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="icon">Icone</Label>
+                <Label htmlFor="icon">Ícone</Label>
                 <Select
                   id="icon"
                   value={form.icon ?? "ExternalLink"}
@@ -247,7 +247,7 @@ export function AdminLinkManager() {
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={isPending}>
                 <Plus className="h-4 w-4" />
-                {editingId ? "Salvar alteracoes" : "Adicionar link"}
+                {editingId ? "Salvar alterações" : "Adicionar link"}
               </Button>
               <Button type="button" variant="secondary" onClick={resetForm}>
                 Limpar
@@ -283,7 +283,7 @@ export function AdminLinkManager() {
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>Links cadastrados</CardTitle>
-              <CardDescription>Edite, desative ou altere a prioridade de exibicao.</CardDescription>
+              <CardDescription>Edite, desative ou altere a prioridade de exibição.</CardDescription>
             </div>
             <div className="flex gap-2">
               <Button type="button" variant="secondary" onClick={loadLinks}>
@@ -325,7 +325,7 @@ export function AdminLinkManager() {
                     )}
                     <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <span>{item.click_count} cliques</span>
-                      <span>Ultimo clique: {formatDateTime(item.last_clicked_at)}</span>
+                      <span>Último clique: {formatDateTime(item.last_clicked_at)}</span>
                       <span className="inline-flex items-center gap-1">
                         <GripVertical className="h-3.5 w-3.5" /> Ordem {item.display_order}
                       </span>

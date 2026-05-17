@@ -12,7 +12,7 @@ export default function MaterialsPage() {
           Materiais ricos
         </h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          Pagina pronta para hospedar guias, checklists, videos explicativos, cases e conteudos de conversao.
+          Página pronta para hospedar guias, checklists, vídeos explicativos, cases e conteúdos de conversão.
         </p>
         <Link
           href="/"

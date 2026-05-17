@@ -28,13 +28,13 @@ export default async function AnalyticsPage() {
             </Link>
           </div>
           <div className="mt-8 max-w-2xl">
-            <Badge>Analytics basico</Badge>
+            <Badge>Analytics básico</Badge>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">
               Performance dos links
             </h1>
             <p className="mt-2 text-slate-600 dark:text-slate-300">
-              Acompanhe total de cliques, links mais acessados e ultimo clique registrado. A tabela de cliques ja guarda
-              user agent e referrer para evoluir metricas de origem, dispositivo e navegador.
+              Acompanhe total de cliques, links mais acessados e último clique registrado. A tabela de cliques já guarda
+              user agent e referrer para evoluir métricas de origem, dispositivo e navegador.
             </p>
           </div>
         </header>
@@ -60,7 +60,7 @@ export default async function AnalyticsPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardDescription>Ultimo clique geral</CardDescription>
+              <CardDescription>Último clique geral</CardDescription>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Clock className="h-5 w-5 text-blue-600 dark:text-sky-300" />
                 {formatDateTime(
@@ -110,7 +110,7 @@ export default async function AnalyticsPage() {
                   <div className="text-left sm:text-right">
                     <p className="text-2xl font-black text-blue-700 dark:text-sky-300">{item.click_count}</p>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Ultimo: {formatDateTime(item.last_clicked_at)}
+                      Último: {formatDateTime(item.last_clicked_at)}
                     </p>
                   </div>
                 </article>

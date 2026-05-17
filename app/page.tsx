@@ -26,18 +26,18 @@ export default async function HomePage() {
           <div className="max-w-2xl space-y-5">
             <Badge>Controle de jornada simples, seguro e inteligente</Badge>
             <h1 className="text-4xl font-black tracking-[-0.04em] text-slate-950 dark:text-slate-50 sm:text-6xl">
-              Ponto Eletronico
+              Ponto Eletrônico
             </h1>
             <p className="text-lg leading-8 text-slate-600 dark:text-slate-300 sm:text-xl">
-              Sistema inteligente para controle de jornada, ponto online e gestao de equipes.
+              Sistema inteligente para controle de jornada, ponto online e gestão de equipes.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
             {[
-              ["Implantacao rapida", Zap],
+              ["Implantação rápida", Zap],
               ["Dados protegidos", ShieldCheck],
-              ["Gestao em tempo real", BarChart3]
+              ["Gestão em tempo real", BarChart3]
             ].map(([label, Icon]) => (
               <div key={String(label)} className="glass-panel rounded-2xl p-4">
                 <Icon className="mb-3 h-5 w-5 text-blue-600 dark:text-sky-300" aria-hidden="true" />

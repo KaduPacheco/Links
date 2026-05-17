@@ -7,6 +7,7 @@ create table if not exists links (
   description text,
   icon text default 'ExternalLink',
   category text not null check (category in ('Comercial', 'Conteúdo', 'Suporte', 'Materiais', 'Redes sociais')),
+  lead_message text,
   is_active boolean not null default true,
   display_order integer not null default 0,
   created_at timestamptz not null default now(),
@@ -48,6 +49,7 @@ select
   links.description,
   links.icon,
   links.category,
+  links.lead_message,
   links.is_active,
   links.display_order,
   links.created_at,
@@ -58,12 +60,12 @@ from links
 left join link_clicks on link_clicks.link_id = links.id
 group by links.id;
 
-insert into links (title, url, description, icon, category, is_active, display_order)
+insert into links (title, url, description, icon, category, lead_message, is_active, display_order)
 values
-  ('Conheça o Ponto Eletrônico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestão de equipes.', 'MonitorCheck', 'Comercial', true, 1),
-  ('Solicitar Demonstração', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentação guiada.', 'CalendarClock', 'Comercial', true, 2),
-  ('Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire dúvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', true, 3),
-  ('Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteúdos da marca.', 'Instagram', 'Redes sociais', true, 4),
-  ('Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'Conteúdo', true, 5),
-  ('Materiais Ricos', '/materiais', 'Guias, checklists e conteúdos práticos para RH.', 'FileText', 'Materiais', true, 6)
+  ('Conheça o Ponto Eletrônico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestão de equipes.', 'MonitorCheck', 'Comercial', null, true, 1),
+  ('Solicitar Demonstração', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentação guiada.', 'CalendarClock', 'Comercial', 'Olá! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstração.', true, 2),
+  ('Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire dúvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', 'Olá! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
+  ('Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteúdos da marca.', 'Instagram', 'Redes sociais', null, true, 4),
+  ('Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'Conteúdo', null, true, 5),
+  ('Materiais Ricos', '/materiais', 'Guias, checklists e conteúdos práticos para RH.', 'FileText', 'Materiais', null, true, 6)
 on conflict do nothing;

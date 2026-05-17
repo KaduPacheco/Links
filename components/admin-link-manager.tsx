@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, isWhatsAppLink } from "@/lib/utils";
 import { categories, type LinkPayload, type LinkWithAnalytics } from "@/types/link";
 
 const emptyForm: LinkPayload = {
@@ -21,6 +21,7 @@ const emptyForm: LinkPayload = {
   description: "",
   icon: "ExternalLink",
   category: "Comercial",
+  lead_message: "",
   is_active: true,
   display_order: 1
 };
@@ -46,8 +47,8 @@ export function AdminLinkManager() {
     () => [...links].sort((a, b) => a.display_order - b.display_order),
     [links]
   );
-
   const totalClicks = links.reduce((sum, item) => sum + item.click_count, 0);
+  const isWhatsAppTarget = isWhatsAppLink(form.url);
 
   function editLink(item: LinkWithAnalytics) {
     setEditingId(item.id);
@@ -57,6 +58,7 @@ export function AdminLinkManager() {
       description: item.description ?? "",
       icon: item.icon ?? "ExternalLink",
       category: item.category,
+      lead_message: item.lead_message ?? "",
       is_active: item.is_active,
       display_order: item.display_order
     });
@@ -110,7 +112,7 @@ export function AdminLinkManager() {
       }
 
       await loadLinks();
-      setMessage("Link excluido.");
+      setMessage("Link excluído.");
     });
   }
 
@@ -125,6 +127,7 @@ export function AdminLinkManager() {
           description: item.description,
           icon: item.icon,
           category: item.category,
+          lead_message: item.lead_message,
           is_active: item.is_active,
           display_order: item.display_order,
           ...updates
@@ -142,11 +145,13 @@ export function AdminLinkManager() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
       <Card className="h-fit border-white/70 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90">
         <CardHeader>
           <CardTitle>{editingId ? "Editar link" : "Novo link"}</CardTitle>
-          <CardDescription>Cadastre canais oficiais, materiais e páginas de conversão da marca.</CardDescription>
+          <CardDescription>
+            Cadastre canais oficiais, materiais e páginas de conversão da marca.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={saveLink}>
@@ -166,7 +171,14 @@ export function AdminLinkManager() {
               <Input
                 id="url"
                 value={form.url}
-                onChange={(event) => setForm({ ...form, url: event.target.value })}
+                onChange={(event) => {
+                  const nextUrl = event.target.value;
+                  setForm((current) => ({
+                    ...current,
+                    url: nextUrl,
+                    lead_message: isWhatsAppLink(nextUrl) ? current.lead_message : ""
+                  }));
+                }}
                 placeholder="https:// ou /caminho"
                 required
               />
@@ -181,6 +193,23 @@ export function AdminLinkManager() {
                 placeholder="Explique o destino em uma frase."
               />
             </div>
+
+            {isWhatsAppTarget && (
+              <div className="space-y-2">
+                <Label htmlFor="lead_message">Mensagem automática</Label>
+                <Textarea
+                  id="lead_message"
+                  value={form.lead_message ?? ""}
+                  onChange={(event) => setForm({ ...form, lead_message: event.target.value })}
+                  placeholder='Ex.: Olá! Vim pelo link "{{origem}}" e quero falar com vocês.'
+                />
+                <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  Em links do WhatsApp, essa mensagem será preenchida automaticamente. Você pode usar{" "}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">{"{{origem}}"}</span> para inserir
+                  o título do botão clicado.
+                </p>
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -322,6 +351,11 @@ export function AdminLinkManager() {
                     <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{item.url}</p>
                     {item.description && (
                       <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.description}</p>
+                    )}
+                    {isWhatsAppLink(item.url) && item.lead_message && (
+                      <p className="mt-2 rounded-xl bg-slate-100 px-3 py-2 text-xs leading-5 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                        Mensagem automática: {item.lead_message}
+                      </p>
                     )}
                     <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <span>{item.click_count} cliques</span>

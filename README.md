@@ -34,7 +34,17 @@ npm install
 cp .env.example .env.local
 ```
 
-3. Configure o PostgreSQL em `.env.local`:
+3. Configure o PostgreSQL em `.env.local`.
+
+O app aceita qualquer uma destas variáveis:
+
+- `DATABASE_URL`
+- `POSTGRES_URL`
+- `POSTGRES_PRISMA_URL`
+- `POSTGRES_URL_NON_POOLING`
+- `SUPABASE_DB_URL`
+
+Exemplo:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -56,8 +66,20 @@ npm run dev
 
 Abra `http://localhost:3000`.
 
-## Observações de segurança
+## Mensagem automática para leads
 
-O painel está estruturado para receber autenticação futuramente. Todas as operações com PostgreSQL rodam apenas no servidor por meio de `DATABASE_URL`, nunca no frontend. URLs são validadas antes de salvar, aceitando apenas `http`, `https` ou caminhos internos iniciados por `/`.
+Cada link pode ter uma `Mensagem automática` configurada no painel admin.
 
-Enquanto `DATABASE_URL` não estiver configurada, a aplicação exibe links iniciais em modo demonstração. Para persistir CRUD e analytics, configure as variáveis de ambiente e execute o schema SQL.
+- Em links do WhatsApp, o sistema injeta essa mensagem no parâmetro `text`.
+- Se a mensagem estiver vazia, o sistema gera uma mensagem padrão com a origem do clique.
+- Você pode usar `{{origem}}` para incluir automaticamente o título do botão clicado.
+
+Exemplo:
+
+```txt
+Olá! Vim pelo link "{{origem}}" e quero falar com vocês.
+```
+
+## Observações
+
+Todas as operações com PostgreSQL rodam apenas no servidor. Se nenhuma das variáveis de conexão estiver definida, a aplicação entra em modo demonstração e exibe os links seed.

@@ -1,7 +1,41 @@
 import { unstable_noStore as noStore } from "next/cache";
 import type { LinkPayload, LinkWithAnalytics } from "@/types/link";
-import { getPool } from "@/lib/db";
+import { getDatabaseConfigMessage, getDatabaseSource, getPool } from "@/lib/db";
 import { seedLinks } from "@/lib/seed-links";
+
+async function ensureLinksSchema() {
+  const pool = getPool();
+
+  if (!pool) {
+    return;
+  }
+
+  await pool.query(`
+    alter table links
+    add column if not exists lead_message text;
+  `);
+
+  await pool.query(`
+    create or replace view links_with_analytics as
+    select
+      links.id,
+      links.title,
+      links.url,
+      links.description,
+      links.icon,
+      links.category,
+      links.lead_message,
+      links.is_active,
+      links.display_order,
+      links.created_at,
+      links.updated_at,
+      count(link_clicks.id)::integer as click_count,
+      max(link_clicks.clicked_at) as last_clicked_at
+    from links
+    left join link_clicks on link_clicks.link_id = links.id
+    group by links.id;
+  `);
+}
 
 export async function getLinksWithAnalytics(includeInactive = true): Promise<LinkWithAnalytics[]> {
   noStore();
@@ -12,6 +46,8 @@ export async function getLinksWithAnalytics(includeInactive = true): Promise<Lin
   }
 
   try {
+    await ensureLinksSchema();
+
     const { rows } = await pool.query<LinkWithAnalytics>(
       `
         select *
@@ -24,7 +60,7 @@ export async function getLinksWithAnalytics(includeInactive = true): Promise<Lin
 
     return rows;
   } catch (error) {
-    console.error("PostgreSQL links query failed", error);
+    console.error(`PostgreSQL links query failed using ${getDatabaseSource() ?? "unknown source"}`, error);
     return seedLinks.filter((link) => includeInactive || link.is_active);
   }
 }
@@ -33,13 +69,15 @@ export async function createLink(payload: LinkPayload) {
   const pool = getPool();
 
   if (!pool) {
-    throw new Error("PostgreSQL nao configurado. Configure DATABASE_URL para salvar dados.");
+    throw new Error(getDatabaseConfigMessage());
   }
+
+  await ensureLinksSchema();
 
   const { rows } = await pool.query(
     `
-      insert into links (title, url, description, icon, category, is_active, display_order)
-      values ($1, $2, $3, $4, $5, $6, $7)
+      insert into links (title, url, description, icon, category, lead_message, is_active, display_order)
+      values ($1, $2, $3, $4, $5, $6, $7, $8)
       returning *
     `,
     [
@@ -48,6 +86,7 @@ export async function createLink(payload: LinkPayload) {
       payload.description,
       payload.icon,
       payload.category,
+      payload.lead_message,
       payload.is_active,
       payload.display_order
     ]
@@ -60,8 +99,10 @@ export async function updateLink(id: string, payload: LinkPayload) {
   const pool = getPool();
 
   if (!pool) {
-    throw new Error("PostgreSQL nao configurado. Configure DATABASE_URL para salvar dados.");
+    throw new Error(getDatabaseConfigMessage());
   }
+
+  await ensureLinksSchema();
 
   const { rows } = await pool.query(
     `
@@ -72,8 +113,9 @@ export async function updateLink(id: string, payload: LinkPayload) {
         description = $4,
         icon = $5,
         category = $6,
-        is_active = $7,
-        display_order = $8
+        lead_message = $7,
+        is_active = $8,
+        display_order = $9
       where id = $1
       returning *
     `,
@@ -84,13 +126,14 @@ export async function updateLink(id: string, payload: LinkPayload) {
       payload.description,
       payload.icon,
       payload.category,
+      payload.lead_message,
       payload.is_active,
       payload.display_order
     ]
   );
 
   if (!rows[0]) {
-    throw new Error("Link nao encontrado.");
+    throw new Error("Link não encontrado.");
   }
 
   return rows[0];
@@ -100,9 +143,10 @@ export async function deleteLink(id: string) {
   const pool = getPool();
 
   if (!pool) {
-    throw new Error("PostgreSQL nao configurado. Configure DATABASE_URL para salvar dados.");
+    throw new Error(getDatabaseConfigMessage());
   }
 
+  await ensureLinksSchema();
   await pool.query("delete from links where id = $1", [id]);
 }
 
@@ -119,6 +163,6 @@ export async function registerClick(linkId: string, userAgent: string | null, re
       [linkId, userAgent, referrer]
     );
   } catch (error) {
-    console.error("PostgreSQL click insert failed", error);
+    console.error(`PostgreSQL click insert failed using ${getDatabaseSource() ?? "unknown source"}`, error);
   }
 }

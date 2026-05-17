@@ -1,23 +1,62 @@
 import { Pool } from "pg";
 
+type DatabaseConfig = {
+  connectionString: string;
+  source: string;
+};
+
+const DATABASE_ENV_KEYS = [
+  "DATABASE_URL",
+  "POSTGRES_URL",
+  "POSTGRES_PRISMA_URL",
+  "POSTGRES_URL_NON_POOLING",
+  "SUPABASE_DB_URL"
+] as const;
+
 let pool: Pool | null = null;
+let poolSource: string | null = null;
+
+function resolveDatabaseConfig(): DatabaseConfig | null {
+  for (const key of DATABASE_ENV_KEYS) {
+    const value = process.env[key]?.trim();
+    if (value) {
+      return {
+        connectionString: value,
+        source: key
+      };
+    }
+  }
+
+  return null;
+}
+
+export function getDatabaseConfigMessage() {
+  return `PostgreSQL não configurado. Defina uma destas variáveis: ${DATABASE_ENV_KEYS.join(", ")}.`;
+}
 
 export function hasDatabaseConfig() {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(resolveDatabaseConfig());
 }
 
 export function getPool() {
-  if (!process.env.DATABASE_URL) {
+  const config = resolveDatabaseConfig();
+
+  if (!config) {
     return null;
   }
 
-  if (!pool) {
+  if (!pool || poolSource !== config.source) {
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: config.connectionString,
       max: 10,
       idleTimeoutMillis: 30_000
     });
+    poolSource = config.source;
   }
 
   return pool;
+}
+
+export function getDatabaseSource() {
+  return resolveDatabaseConfig()?.source ?? null;
 }

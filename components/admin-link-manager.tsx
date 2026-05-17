@@ -143,12 +143,10 @@ export function AdminLinkManager() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
-      <Card className="h-fit border-white/70 bg-white/90">
+      <Card className="h-fit border-white/70 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90">
         <CardHeader>
           <CardTitle>{editingId ? "Editar link" : "Novo link"}</CardTitle>
-          <CardDescription>
-            Cadastre canais oficiais, materiais e paginas de conversao da marca.
-          </CardDescription>
+          <CardDescription>Cadastre canais oficiais, materiais e paginas de conversao da marca.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={saveLink}>
@@ -158,7 +156,7 @@ export function AdminLinkManager() {
                 id="title"
                 value={form.title}
                 onChange={(event) => setForm({ ...form, title: event.target.value })}
-                placeholder="Solicitar Demonstração"
+                placeholder="Solicitar demonstracao"
                 required
               />
             </div>
@@ -236,11 +234,15 @@ export function AdminLinkManager() {
                   onCheckedChange={(checked) => setForm({ ...form, is_active: checked })}
                   label="Status ativo"
                 />
-                <span className="text-sm font-semibold text-slate-600">Ativo</span>
+                <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">Ativo</span>
               </div>
             </div>
 
-            {message && <p className="rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-700">{message}</p>}
+            {message && (
+              <p className="rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-700 dark:bg-sky-500/10 dark:text-sky-200">
+                {message}
+              </p>
+            )}
 
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={isPending}>
@@ -290,7 +292,7 @@ export function AdminLinkManager() {
               </Button>
               <Link
                 href="/admin/analytics"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 dark:bg-sky-400 dark:text-slate-950 dark:hover:bg-sky-300"
               >
                 <BarChart3 className="h-4 w-4" />
                 Analytics
@@ -301,21 +303,27 @@ export function AdminLinkManager() {
             {sortedLinks.map((item) => (
               <article
                 key={item.id}
-                className="grid gap-4 rounded-2xl border bg-white p-4 shadow-sm lg:grid-cols-[1fr_auto]"
+                className="grid gap-4 rounded-2xl border bg-white p-4 shadow-sm lg:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-950"
               >
                 <div className="flex gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 dark:bg-slate-800 dark:text-sky-300">
                     <LinkIcon name={item.icon} className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-black text-slate-950">{item.title}</h3>
+                      <h3 className="font-black text-slate-950 dark:text-slate-50">{item.title}</h3>
                       <Badge>{item.category}</Badge>
-                      {!item.is_active && <Badge className="bg-slate-100 text-slate-600">Inativo</Badge>}
+                      {!item.is_active && (
+                        <Badge className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          Inativo
+                        </Badge>
+                      )}
                     </div>
-                    <p className="mt-1 truncate text-sm text-slate-500">{item.url}</p>
-                    {item.description && <p className="mt-2 text-sm text-slate-600">{item.description}</p>}
-                    <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-slate-500">
+                    <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{item.url}</p>
+                    {item.description && (
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.description}</p>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <span>{item.click_count} cliques</span>
                       <span>Ultimo clique: {formatDateTime(item.last_clicked_at)}</span>
                       <span className="inline-flex items-center gap-1">
@@ -331,10 +339,18 @@ export function AdminLinkManager() {
                     onCheckedChange={(checked) => quickUpdate(item, { is_active: checked })}
                     label={`Ativar ${item.title}`}
                   />
-                  <Button variant="secondary" size="sm" onClick={() => quickUpdate(item, { display_order: item.display_order - 1 })}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => quickUpdate(item, { display_order: item.display_order - 1 })}
+                  >
                     Subir
                   </Button>
-                  <Button variant="secondary" size="sm" onClick={() => quickUpdate(item, { display_order: item.display_order + 1 })}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => quickUpdate(item, { display_order: item.display_order + 1 })}
+                  >
                     Descer
                   </Button>
                   <Button variant="secondary" size="sm" onClick={() => editLink(item)}>
@@ -345,7 +361,7 @@ export function AdminLinkManager() {
                     href={item.url}
                     target={item.url.startsWith("/") ? "_self" : "_blank"}
                     rel="noreferrer"
-                    className="inline-flex h-9 items-center justify-center rounded-xl border px-3 text-sm font-semibold transition hover:bg-slate-50"
+                    className="inline-flex h-9 items-center justify-center rounded-xl border px-3 text-sm font-semibold transition hover:bg-slate-50 dark:hover:bg-slate-800"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>

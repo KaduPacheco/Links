@@ -14,8 +14,8 @@ export function BrandMark({ compact = false, className }: BrandMarkProps) {
       </div>
       {!compact && (
         <div>
-          <p className="text-lg font-black tracking-tight text-slate-950">Ponto Eletrônico</p>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">links oficiais</p>
+          <p className="text-lg font-black tracking-tight text-slate-950 dark:text-slate-50">Ponto Eletronico</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600 dark:text-sky-300">links oficiais</p>
         </div>
       )}
     </div>

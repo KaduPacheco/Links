@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LockKeyhole } from "lucide-react";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { BrandMark } from "@/components/brand-mark";
@@ -23,7 +24,9 @@ export default function AdminLoginPage() {
         </CardHeader>
         <CardContent>
           {authReady ? (
-            <AdminLoginForm />
+            <Suspense fallback={null}>
+              <AdminLoginForm />
+            </Suspense>
           ) : (
             <p className="rounded-xl bg-amber-50 p-3 text-sm font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
               {authError ?? "Auth admin não configurada."}

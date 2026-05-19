@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, BarChart3, Clock, Trophy } from "lucide-react";
+import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { BrandMark } from "@/components/brand-mark";
 import { LinkIcon } from "@/components/icon-picker";
 import { Badge } from "@/components/ui/badge";
@@ -19,13 +20,16 @@ export default async function AnalyticsPage() {
         <header className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <BrandMark />
-            <Link
-              href="/admin"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 dark:bg-sky-400 dark:text-slate-950 dark:hover:bg-sky-300"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Voltar ao painel
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/admin"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 dark:bg-sky-400 dark:text-slate-950 dark:hover:bg-sky-300"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar ao painel
+              </Link>
+              <AdminLogoutButton />
+            </div>
           </div>
           <div className="mt-8 max-w-2xl">
             <Badge>Analytics básico</Badge>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminLinkManager } from "@/components/admin-link-manager";
 import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ export default function AdminPage() {
             <div>
               <Badge>
                 <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                Preparado para Supabase Auth
+                Painel protegido por sessão
               </Badge>
               <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">
                 Painel administrativo
@@ -24,13 +25,16 @@ export default function AdminPage() {
               </p>
             </div>
           </div>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 dark:bg-sky-400 dark:text-slate-950 dark:hover:bg-sky-300"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Ver página pública
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 dark:bg-sky-400 dark:text-slate-950 dark:hover:bg-sky-300"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Ver página pública
+            </Link>
+            <AdminLogoutButton />
+          </div>
         </header>
 
         <AdminLinkManager />

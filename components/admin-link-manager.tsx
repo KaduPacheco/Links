@@ -26,6 +26,19 @@ const emptyForm: LinkPayload = {
   display_order: 1
 };
 
+function redirectToLogin() {
+  window.location.assign("/admin/login?next=/admin");
+}
+
+async function readJsonOrThrow<T>(response: Response) {
+  if (response.status === 401) {
+    redirectToLogin();
+    throw new Error("Sessão expirada.");
+  }
+
+  return (await response.json()) as T;
+}
+
 export function AdminLinkManager() {
   const [links, setLinks] = useState<LinkWithAnalytics[]>([]);
   const [form, setForm] = useState<LinkPayload>(emptyForm);
@@ -33,22 +46,22 @@ export function AdminLinkManager() {
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  async function loadLinks() {
-    const response = await fetch("/api/links", { cache: "no-store" });
-    const payload = (await response.json()) as { data: LinkWithAnalytics[] };
-    setLinks(payload.data ?? []);
-  }
-
-  useEffect(() => {
-    loadLinks().catch(() => setMessage("Não foi possível carregar os links."));
-  }, []);
-
   const sortedLinks = useMemo(
     () => [...links].sort((a, b) => a.display_order - b.display_order),
     [links]
   );
   const totalClicks = links.reduce((sum, item) => sum + item.click_count, 0);
   const isWhatsAppTarget = isWhatsAppLink(form.url);
+
+  async function loadLinks() {
+    const response = await fetch("/api/links", { cache: "no-store" });
+    const payload = await readJsonOrThrow<{ data: LinkWithAnalytics[] }>(response);
+    setLinks(payload.data ?? []);
+  }
+
+  useEffect(() => {
+    loadLinks().catch(() => setMessage("Não foi possível carregar os links."));
+  }, []);
 
   function editLink(item: LinkWithAnalytics) {
     setEditingId(item.id);
@@ -84,7 +97,7 @@ export function AdminLinkManager() {
         body: JSON.stringify(form)
       });
 
-      const payload = (await response.json()) as { error?: string };
+      const payload = await readJsonOrThrow<{ error?: string }>(response);
 
       if (!response.ok) {
         setMessage(payload.error ?? "Não foi possível salvar o link.");
@@ -104,7 +117,7 @@ export function AdminLinkManager() {
 
     startTransition(async () => {
       const response = await fetch(`/api/links/${id}`, { method: "DELETE" });
-      const payload = (await response.json()) as { error?: string };
+      const payload = await readJsonOrThrow<{ error?: string }>(response);
 
       if (!response.ok) {
         setMessage(payload.error ?? "Não foi possível excluir o link.");
@@ -134,8 +147,9 @@ export function AdminLinkManager() {
         })
       });
 
+      const payload = await readJsonOrThrow<{ error?: string }>(response);
+
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
         setMessage(payload.error ?? "Não foi possível atualizar o link.");
         return;
       }

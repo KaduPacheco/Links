@@ -14,6 +14,25 @@ create table if not exists links (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists site_settings (
+  id integer primary key default 1 check (id = 1),
+  company_name text not null default 'Ponto Eletronico',
+  brand_label text not null default 'Links oficiais',
+  company_logo_url text,
+  hero_badge text not null default 'Controle de jornada simples, seguro e inteligente',
+  hero_description text not null default 'Sistema inteligente para controle de jornada, ponto online e gestao de equipes.',
+  links_heading text not null default 'Links oficiais',
+  links_description text not null default 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.',
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists admin_users (
+  id integer primary key default 1 check (id = 1),
+  login text not null,
+  password_hash text not null,
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists link_clicks (
   id uuid primary key default gen_random_uuid(),
   link_id uuid not null references links(id) on delete cascade,
@@ -62,10 +81,15 @@ group by links.id;
 
 insert into links (title, url, description, icon, category, lead_message, is_active, display_order)
 values
-  ('Conheça o Ponto Eletrônico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestão de equipes.', 'MonitorCheck', 'Comercial', null, true, 1),
-  ('Solicitar Demonstração', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentação guiada.', 'CalendarClock', 'Comercial', 'Olá! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstração.', true, 2),
-  ('Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire dúvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', 'Olá! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
-  ('Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteúdos da marca.', 'Instagram', 'Redes sociais', null, true, 4),
+  ('Conheca o Ponto Eletronico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestao de equipes.', 'MonitorCheck', 'Comercial', null, true, 1),
+  ('Solicitar Demonstracao', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentacao guiada.', 'CalendarClock', 'Comercial', 'Ola! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstracao.', true, 2),
+  ('Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire duvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', 'Ola! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
+  ('Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteudos da marca.', 'Instagram', 'Redes sociais', null, true, 4),
   ('Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'Conteúdo', null, true, 5),
-  ('Materiais Ricos', '/materiais', 'Guias, checklists e conteúdos práticos para RH.', 'FileText', 'Materiais', null, true, 6)
+  ('Materiais Ricos', '/materiais', 'Guias, checklists e conteudos praticos para RH.', 'FileText', 'Materiais', null, true, 6)
 on conflict do nothing;
+
+insert into site_settings (id, company_name, brand_label, company_logo_url, hero_badge, hero_description, links_heading, links_description)
+values
+  (1, 'Ponto Eletronico', 'Links oficiais', null, 'Controle de jornada simples, seguro e inteligente', 'Sistema inteligente para controle de jornada, ponto online e gestao de equipes.', 'Links oficiais', 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.')
+on conflict (id) do nothing;

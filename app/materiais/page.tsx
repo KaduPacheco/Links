@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { ArrowLeft, FileText } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export default function MaterialsPage() {
+export default async function MaterialsPage() {
+  const settings = await getSiteSettings();
+
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <section className="glass-panel max-w-2xl rounded-[2rem] p-8 text-center">
-        <BrandMark className="justify-center" />
+        <BrandMark className="justify-center" settings={settings} />
         <FileText className="mx-auto mt-8 h-12 w-12 text-blue-600 dark:text-sky-300" />
-        <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">
-          Materiais ricos
-        </h1>
+        <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">Materiais ricos</h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          Página pronta para hospedar guias, checklists, vídeos explicativos, cases e conteúdos de conversão.
+          Pagina pronta para hospedar guias, checklists, videos explicativos, cases e conteudos de conversao.
         </p>
         <Link
           href="/"

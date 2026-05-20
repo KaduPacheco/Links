@@ -5,11 +5,12 @@ import { BrandMark } from "@/components/brand-mark";
 import { LinkIcon } from "@/components/icon-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateTime } from "@/lib/utils";
 import { getLinksWithAnalytics } from "@/lib/links";
+import { getSiteSettings } from "@/lib/site-settings";
+import { formatDateTime } from "@/lib/utils";
 
 export default async function AnalyticsPage() {
-  const links = await getLinksWithAnalytics(true);
+  const [links, settings] = await Promise.all([getLinksWithAnalytics(true), getSiteSettings()]);
   const rankedLinks = [...links].sort((a, b) => b.click_count - a.click_count);
   const totalClicks = links.reduce((sum, link) => sum + link.click_count, 0);
   const leader = rankedLinks[0];
@@ -19,7 +20,7 @@ export default async function AnalyticsPage() {
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <BrandMark />
+            <BrandMark settings={settings} />
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/admin"
@@ -32,13 +33,13 @@ export default async function AnalyticsPage() {
             </div>
           </div>
           <div className="mt-8 max-w-2xl">
-            <Badge>Analytics básico</Badge>
+            <Badge>Analytics basico</Badge>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">
               Performance dos links
             </h1>
             <p className="mt-2 text-slate-600 dark:text-slate-300">
-              Acompanhe total de cliques, links mais acessados e último clique registrado. A tabela de cliques já guarda
-              user agent e referrer para evoluir métricas de origem, dispositivo e navegador.
+              Acompanhe total de cliques, links mais acessados e ultimo clique registrado. A tabela de cliques ja guarda
+              user agent e referrer para evoluir metricas de origem, dispositivo e navegador.
             </p>
           </div>
         </header>
@@ -64,7 +65,7 @@ export default async function AnalyticsPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardDescription>Último clique geral</CardDescription>
+              <CardDescription>Ultimo clique geral</CardDescription>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Clock className="h-5 w-5 text-blue-600 dark:text-sky-300" />
                 {formatDateTime(
@@ -114,7 +115,7 @@ export default async function AnalyticsPage() {
                   <div className="text-left sm:text-right">
                     <p className="text-2xl font-black text-blue-700 dark:text-sky-300">{item.click_count}</p>
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Último: {formatDateTime(item.last_clicked_at)}
+                      Ultimo: {formatDateTime(item.last_clicked_at)}
                     </p>
                   </div>
                 </article>

@@ -4,9 +4,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Ponto Eletrônico | Links oficiais",
-  description:
-    "Página oficial de links do Ponto Eletrônico para demonstração, atendimento, conteúdos e suporte.",
+  title: "Links oficiais",
+  description: "Pagina oficial de links para demonstracao, atendimento, conteudos e suporte.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000")
 };
 

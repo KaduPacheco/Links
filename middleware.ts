@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   const session = await verifySessionToken(request.cookies.get(ADMIN_SESSION_COOKIE)?.value ?? null);
   const isAdminRoute = pathname.startsWith("/admin");
   const isLoginRoute = pathname === ADMIN_LOGIN_PATH;
-  const isAdminApi = pathname.startsWith("/api/links");
+  const isProtectedApi = pathname.startsWith("/api/links") || pathname.startsWith("/api/admin");
 
   if (isAdminRoute && isLoginRoute && session) {
     return NextResponse.redirect(new URL("/admin", request.url));
@@ -22,13 +22,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(buildLoginUrl(request));
   }
 
-  if (isAdminApi && !session) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  if (isProtectedApi && !session) {
+    return NextResponse.json({ error: "Nao autenticado." }, { status: 401 });
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/links/:path*"]
+  matcher: ["/admin/:path*", "/api/links/:path*", "/api/admin/:path*"]
 };

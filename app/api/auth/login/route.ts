@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  ADMIN_SESSION_COOKIE,
-  createSessionToken,
-  getAdminAuthConfigError,
-  getAdminCookieOptions,
-  isAdminAuthConfigured,
-  sanitizeNextPath,
-  validateAdminCredentials
-} from "@/lib/auth";
+import { ADMIN_SESSION_COOKIE, createSessionToken, getAdminCookieOptions, sanitizeNextPath } from "@/lib/auth";
+import { getAdminAuthConfigError, isAdminAuthConfigured, validateAdminCredentials } from "@/lib/admin-account";
 
 type LoginRequest = {
   login?: string;
@@ -16,19 +9,20 @@ type LoginRequest = {
 };
 
 export async function POST(request: Request) {
-  if (!isAdminAuthConfigured()) {
-    return NextResponse.json({ error: getAdminAuthConfigError() ?? "Auth admin não configurada." }, { status: 503 });
+  if (!(await isAdminAuthConfigured())) {
+    return NextResponse.json({ error: (await getAdminAuthConfigError()) ?? "Auth admin nao configurada." }, { status: 503 });
   }
 
   const body = (await request.json()) as LoginRequest;
   const login = String(body.login ?? "").trim();
   const password = String(body.password ?? "");
+  const credentials = await validateAdminCredentials(login, password);
 
-  if (!(await validateAdminCredentials(login, password))) {
-    return NextResponse.json({ error: "Credenciais inválidas." }, { status: 401 });
+  if (!credentials.valid || !credentials.login) {
+    return NextResponse.json({ error: "Credenciais invalidas." }, { status: 401 });
   }
 
-  const token = await createSessionToken();
+  const token = await createSessionToken(credentials.login);
   const next = sanitizeNextPath(body.next ?? null);
   const response = NextResponse.json({ ok: true, next });
   response.cookies.set(ADMIN_SESSION_COOKIE, token, getAdminCookieOptions());

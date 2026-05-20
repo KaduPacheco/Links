@@ -4,6 +4,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { LinkIcon } from "@/components/icon-picker";
 import { Badge } from "@/components/ui/badge";
 import { getLinksWithAnalytics } from "@/lib/links";
+import { getSiteSettings } from "@/lib/site-settings";
 
 function groupByCategory<T extends { category: string }>(items: T[]) {
   return items.reduce<Record<string, T[]>>((acc, item) => {
@@ -14,7 +15,7 @@ function groupByCategory<T extends { category: string }>(items: T[]) {
 }
 
 export default async function HomePage() {
-  const links = await getLinksWithAnalytics(false);
+  const [links, settings] = await Promise.all([getLinksWithAnalytics(false), getSiteSettings()]);
   const groupedLinks = groupByCategory(links);
 
   return (
@@ -22,22 +23,20 @@ export default async function HomePage() {
       <div className="absolute left-1/2 top-0 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-300/25 blur-3xl dark:bg-sky-500/20" />
       <div className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[1fr_440px]">
         <section className="animate-fade-up space-y-8">
-          <BrandMark />
+          <BrandMark settings={settings} />
           <div className="max-w-2xl space-y-5">
-            <Badge>Controle de jornada simples, seguro e inteligente</Badge>
+            <Badge>{settings.hero_badge}</Badge>
             <h1 className="text-4xl font-black tracking-[-0.04em] text-slate-950 dark:text-slate-50 sm:text-6xl">
-              Ponto Eletrônico
+              {settings.company_name}
             </h1>
-            <p className="text-lg leading-8 text-slate-600 dark:text-slate-300 sm:text-xl">
-              Sistema inteligente para controle de jornada, ponto online e gestão de equipes.
-            </p>
+            <p className="text-lg leading-8 text-slate-600 dark:text-slate-300 sm:text-xl">{settings.hero_description}</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
             {[
-              ["Implantação rápida", Zap],
+              ["Implantacao rapida", Zap],
               ["Dados protegidos", ShieldCheck],
-              ["Gestão em tempo real", BarChart3]
+              ["Gestao em tempo real", BarChart3]
             ].map(([label, Icon]) => (
               <div key={String(label)} className="glass-panel rounded-2xl p-4">
                 <Icon className="mb-3 h-5 w-5 text-blue-600 dark:text-sky-300" aria-hidden="true" />
@@ -58,7 +57,7 @@ export default async function HomePage() {
         <section className="glass-panel animate-fade-up rounded-[2rem] p-4 shadow-glow sm:p-6">
           <div className="rounded-[1.5rem] border border-blue-100 bg-gradient-to-br from-white to-blue-50/80 p-5 dark:border-slate-700 dark:from-slate-900 dark:to-slate-900/70">
             <div className="mb-6 flex items-center justify-between">
-              <BrandMark compact />
+              <BrandMark compact settings={settings} />
               <Badge className="border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
                 <CheckCircle2 className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
                 Online
@@ -66,10 +65,8 @@ export default async function HomePage() {
             </div>
 
             <div className="mb-6 text-center">
-              <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-slate-50">Links oficiais</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.
-              </p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-slate-50">{settings.links_heading}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{settings.links_description}</p>
             </div>
 
             <div className="space-y-5">

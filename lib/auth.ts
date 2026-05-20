@@ -11,30 +11,8 @@ type AdminSessionPayload = {
   exp: number;
 };
 
-function getAdminLogin() {
-  return process.env.ADMIN_EMAIL?.trim() || process.env.ADMIN_USERNAME?.trim() || null;
-}
-
-function getAdminPassword() {
-  return process.env.ADMIN_PASSWORD?.trim() || null;
-}
-
 function getSessionSecret() {
   return process.env.AUTH_SESSION_SECRET?.trim() || process.env.SESSION_SECRET?.trim() || null;
-}
-
-export function isAdminAuthConfigured() {
-  return Boolean(getAdminLogin() && getAdminPassword() && getSessionSecret());
-}
-
-export function getAdminAuthConfigError() {
-  const missing = [
-    !getAdminLogin() ? "ADMIN_EMAIL ou ADMIN_USERNAME" : null,
-    !getAdminPassword() ? "ADMIN_PASSWORD" : null,
-    !getSessionSecret() ? "AUTH_SESSION_SECRET ou SESSION_SECRET" : null
-  ].filter(Boolean);
-
-  return missing.length ? `Auth admin incompleta. Defina: ${missing.join(", ")}.` : null;
 }
 
 function toBase64Url(value: string) {
@@ -101,12 +79,11 @@ export async function verifySessionToken(token: string | null) {
   }
 }
 
-export async function createSessionToken() {
-  const login = getAdminLogin();
+export async function createSessionToken(login: string) {
   const secret = getSessionSecret();
 
   if (!login || !secret) {
-    throw new Error(getAdminAuthConfigError() ?? "Auth admin não configurada.");
+    throw new Error("Auth admin nao configurada.");
   }
 
   const encodedHeader = encodeJson({ alg: "HS256", typ: "JWT" });
@@ -119,17 +96,6 @@ export async function createSessionToken() {
   const signature = await createSignature(unsigned, secret);
 
   return `${unsigned}.${signature}`;
-}
-
-export async function validateAdminCredentials(login: string, password: string) {
-  const expectedLogin = getAdminLogin();
-  const expectedPassword = getAdminPassword();
-
-  if (!expectedLogin || !expectedPassword) {
-    return false;
-  }
-
-  return login === expectedLogin && password === expectedPassword;
 }
 
 export function getAdminCookieOptions() {

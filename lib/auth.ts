@@ -5,9 +5,11 @@ export const ADMIN_LOGIN_PATH = "/admin/login";
 
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
-type AdminSessionPayload = {
+export type AdminSessionPayload = {
   sub: "admin";
+  user_id: string;
   login: string;
+  role: string;
   exp: number;
 };
 
@@ -79,7 +81,7 @@ export async function verifySessionToken(token: string | null) {
   }
 }
 
-export async function createSessionToken(login: string) {
+export async function createSessionToken(login: string, userId = "admin", role = "owner") {
   const secret = getSessionSecret();
 
   if (!login || !secret) {
@@ -89,7 +91,9 @@ export async function createSessionToken(login: string) {
   const encodedHeader = encodeJson({ alg: "HS256", typ: "JWT" });
   const encodedPayload = encodeJson({
     sub: "admin",
+    user_id: userId,
     login,
+    role,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS
   } satisfies AdminSessionPayload);
   const unsigned = `${encodedHeader}.${encodedPayload}`;

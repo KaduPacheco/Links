@@ -12,13 +12,14 @@ export async function middleware(request: NextRequest) {
   const session = await verifySessionToken(request.cookies.get(ADMIN_SESSION_COOKIE)?.value ?? null);
   const isAdminRoute = pathname.startsWith("/admin");
   const isLoginRoute = pathname === ADMIN_LOGIN_PATH;
+  const isInviteRoute = pathname.startsWith("/admin/convite");
   const isProtectedApi = pathname.startsWith("/api/links") || pathname.startsWith("/api/admin");
 
   if (isAdminRoute && isLoginRoute && session) {
     return NextResponse.redirect(new URL("/admin", request.url));
   }
 
-  if (isAdminRoute && !isLoginRoute && !session) {
+  if (isAdminRoute && !isLoginRoute && !isInviteRoute && !session) {
     return NextResponse.redirect(buildLoginUrl(request));
   }
 

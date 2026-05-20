@@ -1,14 +1,23 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminWorkspace } from "@/components/admin-workspace";
 import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
-import { getAdminAccountInfo } from "@/lib/admin-account";
+import { ADMIN_SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { getAdminAccountInfo, listAdminUsers } from "@/lib/admin-account";
 import { getSiteSettings } from "@/lib/site-settings";
+import type { AdminRole } from "@/types/admin-user";
+
+function normalizeRole(role: string | undefined): AdminRole {
+  return role === "admin" || role === "editor" || role === "owner" ? role : "owner";
+}
 
 export default async function AdminPage() {
-  const [settings, account] = await Promise.all([getSiteSettings(), getAdminAccountInfo()]);
+  const session = await verifySessionToken(cookies().get(ADMIN_SESSION_COOKIE)?.value ?? null);
+  const currentRole = normalizeRole(session?.role);
+  const [settings, account, users] = await Promise.all([getSiteSettings(), getAdminAccountInfo(), listAdminUsers()]);
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
@@ -41,7 +50,12 @@ export default async function AdminPage() {
           </div>
         </header>
 
-        <AdminWorkspace initialSettings={settings} initialAccount={account} />
+        <AdminWorkspace
+          initialSettings={settings}
+          initialAccount={account}
+          initialUsers={users}
+          currentRole={currentRole}
+        />
       </div>
     </main>
   );

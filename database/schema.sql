@@ -27,9 +27,16 @@ create table if not exists site_settings (
 );
 
 create table if not exists admin_users (
-  id integer primary key default 1 check (id = 1),
+  id integer primary key default 1,
+  name text,
   login text not null,
   password_hash text not null,
+  role text not null default 'owner',
+  status text not null default 'active',
+  invite_token_hash text,
+  invited_at timestamptz,
+  accepted_at timestamptz,
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
@@ -43,6 +50,8 @@ create table if not exists link_clicks (
 
 create index if not exists links_active_order_idx on links (is_active, display_order);
 create index if not exists link_clicks_link_clicked_idx on link_clicks (link_id, clicked_at desc);
+create unique index if not exists admin_users_login_unique_idx on admin_users (lower(login));
+create unique index if not exists admin_users_invite_token_unique_idx on admin_users (invite_token_hash) where invite_token_hash is not null;
 
 create or replace function set_updated_at()
 returns trigger

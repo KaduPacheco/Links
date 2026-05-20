@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Credenciais invalidas." }, { status: 401 });
   }
 
-  const token = await createSessionToken(credentials.login);
+  const token = await createSessionToken(credentials.login, credentials.userId ?? "admin", credentials.role ?? "owner");
   const next = sanitizeNextPath(body.next ?? null);
   const response = NextResponse.json({ ok: true, next });
   response.cookies.set(ADMIN_SESSION_COOKIE, token, getAdminCookieOptions());

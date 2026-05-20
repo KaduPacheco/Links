@@ -1,6 +1,7 @@
 import { categories, type LinkPayload } from "@/types/link";
 import { isWhatsAppLink } from "@/lib/utils";
 import { type SiteSettings } from "@/types/site-settings";
+import { adminRoles, type AdminRole } from "@/types/admin-user";
 
 const internalPathPattern = /^\/[A-Za-z0-9\-_/]*$/;
 
@@ -135,5 +136,79 @@ export function parsePasswordUpdatePayload(input: unknown) {
   return {
     currentPassword,
     nextPassword
+  };
+}
+
+export function parseAdminInvitePayload(input: unknown) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Payload invalido.");
+  }
+
+  const payload = input as Record<string, unknown>;
+  const name = String(payload.name ?? "").trim();
+  const login = String(payload.login ?? "").trim().toLowerCase();
+  const role = String(payload.role ?? "editor").trim();
+
+  if (name.length < 2) {
+    throw new Error("Informe o nome com pelo menos 2 caracteres.");
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
+    throw new Error("Informe um e-mail valido para o convite.");
+  }
+
+  if (!adminRoles.includes(role as AdminRole)) {
+    throw new Error("Perfil de usuario invalido.");
+  }
+
+  return {
+    name,
+    login,
+    role: role as AdminRole
+  };
+}
+
+export function parseInviteAcceptancePayload(input: unknown) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Payload invalido.");
+  }
+
+  const payload = input as Record<string, unknown>;
+  const token = String(payload.token ?? "").trim();
+  const password = String(payload.password ?? "");
+  const confirmPassword = String(payload.confirmPassword ?? "");
+
+  if (token.length < 20) {
+    throw new Error("Convite invalido.");
+  }
+
+  if (password.length < 8) {
+    throw new Error("A senha deve ter pelo menos 8 caracteres.");
+  }
+
+  if (password !== confirmPassword) {
+    throw new Error("A confirmacao da senha nao confere.");
+  }
+
+  return {
+    token,
+    password
+  };
+}
+
+export function parseAdminUserStatusPayload(input: unknown) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Payload invalido.");
+  }
+
+  const payload = input as Record<string, unknown>;
+  const status = String(payload.status ?? "").trim();
+
+  if (!["active", "inactive"].includes(status)) {
+    throw new Error("Status de usuario invalido.");
+  }
+
+  return {
+    status: status as "active" | "inactive"
   };
 }

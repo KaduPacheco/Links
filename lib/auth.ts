@@ -3,7 +3,7 @@ const encoder = new TextEncoder();
 export const ADMIN_SESSION_COOKIE = "pe_admin_session";
 export const ADMIN_LOGIN_PATH = "/admin/login";
 
-const SESSION_TTL_SECONDS = 60 * 60 * 12;
+const DEFAULT_SESSION_TTL_SECONDS = 60 * 60 * 12;
 
 export type AdminSessionPayload = {
   sub: "admin";
@@ -15,6 +15,22 @@ export type AdminSessionPayload = {
 
 function getSessionSecret() {
   return process.env.AUTH_SESSION_SECRET?.trim() || process.env.SESSION_SECRET?.trim() || null;
+}
+
+function getSessionTtlSeconds() {
+  const rawValue = process.env.AUTH_SESSION_TTL_HOURS?.trim();
+
+  if (!rawValue) {
+    return DEFAULT_SESSION_TTL_SECONDS;
+  }
+
+  const ttlHours = Number(rawValue);
+
+  if (!Number.isFinite(ttlHours) || ttlHours <= 0) {
+    return DEFAULT_SESSION_TTL_SECONDS;
+  }
+
+  return Math.floor(ttlHours * 60 * 60);
 }
 
 function toBase64Url(value: string) {
@@ -83,6 +99,7 @@ export async function verifySessionToken(token: string | null) {
 
 export async function createSessionToken(login: string, userId = "admin", role = "owner") {
   const secret = getSessionSecret();
+  const sessionTtlSeconds = getSessionTtlSeconds();
 
   if (!login || !secret) {
     throw new Error("Auth admin nao configurada.");
@@ -94,7 +111,7 @@ export async function createSessionToken(login: string, userId = "admin", role =
     user_id: userId,
     login,
     role,
-    exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS
+    exp: Math.floor(Date.now() / 1000) + sessionTtlSeconds
   } satisfies AdminSessionPayload);
   const unsigned = `${encodedHeader}.${encodedPayload}`;
   const signature = await createSignature(unsigned, secret);
@@ -107,8 +124,7 @@ export function getAdminCookieOptions() {
     httpOnly: true,
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_TTL_SECONDS
+    path: "/"
   };
 }
 

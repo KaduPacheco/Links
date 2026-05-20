@@ -2,10 +2,11 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
+import { AdminSessionGuard } from "@/components/admin-session-guard";
 import { AdminWorkspace } from "@/components/admin-workspace";
 import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
-import { ADMIN_SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { ADMIN_SESSION_COOKIE, getAdminIdleTimeoutMinutes, verifySessionToken } from "@/lib/auth";
 import { getAdminAccountInfo, listAdminUsers } from "@/lib/admin-account";
 import { getSiteSettings } from "@/lib/site-settings";
 import type { AdminRole } from "@/types/admin-user";
@@ -17,10 +18,12 @@ function normalizeRole(role: string | undefined): AdminRole {
 export default async function AdminPage() {
   const session = await verifySessionToken(cookies().get(ADMIN_SESSION_COOKIE)?.value ?? null);
   const currentRole = normalizeRole(session?.role);
+  const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
   const [settings, account, users] = await Promise.all([getSiteSettings(), getAdminAccountInfo(), listAdminUsers()]);
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+      <AdminSessionGuard idleTimeoutMinutes={idleTimeoutMinutes} />
       <div className="mx-auto max-w-7xl space-y-8">
         <header className="flex flex-col gap-5 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/80 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-4">

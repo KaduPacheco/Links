@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { ArrowLeft, BarChart3, Clock, Trophy } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
+import { AdminSessionGuard } from "@/components/admin-session-guard";
 import { BrandMark } from "@/components/brand-mark";
 import { LinkIcon } from "@/components/icon-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAdminIdleTimeoutMinutes } from "@/lib/auth";
 import { getLinksWithAnalytics } from "@/lib/links";
 import { getSiteSettings } from "@/lib/site-settings";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function AnalyticsPage() {
+  const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
   const [links, settings] = await Promise.all([getLinksWithAnalytics(true), getSiteSettings()]);
   const rankedLinks = [...links].sort((a, b) => b.click_count - a.click_count);
   const totalClicks = links.reduce((sum, link) => sum + link.click_count, 0);
@@ -17,6 +20,7 @@ export default async function AnalyticsPage() {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+      <AdminSessionGuard idleTimeoutMinutes={idleTimeoutMinutes} />
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">

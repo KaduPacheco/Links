@@ -4,6 +4,7 @@ export const ADMIN_SESSION_COOKIE = "pe_admin_session";
 export const ADMIN_LOGIN_PATH = "/admin/login";
 
 const DEFAULT_SESSION_TTL_SECONDS = 60 * 60 * 12;
+const DEFAULT_IDLE_TIMEOUT_MINUTES = 30;
 
 export type AdminSessionPayload = {
   sub: "admin";
@@ -31,6 +32,22 @@ function getSessionTtlSeconds() {
   }
 
   return Math.floor(ttlHours * 60 * 60);
+}
+
+export function getAdminIdleTimeoutMinutes() {
+  const rawValue = process.env.AUTH_IDLE_TIMEOUT_MINUTES?.trim();
+
+  if (!rawValue) {
+    return DEFAULT_IDLE_TIMEOUT_MINUTES;
+  }
+
+  const idleTimeoutMinutes = Number(rawValue);
+
+  if (!Number.isFinite(idleTimeoutMinutes) || idleTimeoutMinutes <= 0) {
+    return DEFAULT_IDLE_TIMEOUT_MINUTES;
+  }
+
+  return idleTimeoutMinutes;
 }
 
 function toBase64Url(value: string) {

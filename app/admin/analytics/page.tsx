@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { ArrowLeft, BarChart3, Clock, Trophy } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminSessionGuard } from "@/components/admin-session-guard";
@@ -6,14 +7,17 @@ import { BrandMark } from "@/components/brand-mark";
 import { LinkIcon } from "@/components/icon-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAdminIdleTimeoutMinutes } from "@/lib/auth";
+import { DEFAULT_ACCOUNT_ID } from "@/lib/accounts";
+import { ADMIN_SESSION_COOKIE, getAdminIdleTimeoutMinutes, verifySessionToken } from "@/lib/auth";
 import { getLinksWithAnalytics } from "@/lib/links";
-import { getSiteSettings } from "@/lib/site-settings";
+import { getSiteSettingsForAccount } from "@/lib/site-settings";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function AnalyticsPage() {
+  const session = await verifySessionToken(cookies().get(ADMIN_SESSION_COOKIE)?.value ?? null);
+  const accountId = session?.account_id ?? DEFAULT_ACCOUNT_ID;
   const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
-  const [links, settings] = await Promise.all([getLinksWithAnalytics(true), getSiteSettings()]);
+  const [links, settings] = await Promise.all([getLinksWithAnalytics(true, accountId), getSiteSettingsForAccount(accountId)]);
   const rankedLinks = [...links].sort((a, b) => b.click_count - a.click_count);
   const totalClicks = links.reduce((sum, link) => sum + link.click_count, 0);
   const leader = rankedLinks[0];

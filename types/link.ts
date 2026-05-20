@@ -10,6 +10,7 @@ export type LinkCategory = (typeof categories)[number];
 
 export type LinkItem = {
   id: string;
+  account_id?: string;
   title: string;
   url: string;
   description: string | null;

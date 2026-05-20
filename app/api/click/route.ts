@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { DEFAULT_ACCOUNT_ID, getAccountBySlug } from "@/lib/accounts";
 import { getLinksWithAnalytics, registerClick } from "@/lib/links";
 import { isWhatsAppLink } from "@/lib/utils";
 
@@ -25,19 +26,22 @@ function buildDestination(rawUrl: string, origin: string, linkTitle: string, lea
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const linkId = searchParams.get("linkId");
+  const accountSlug = searchParams.get("account");
 
   if (!linkId) {
     return NextResponse.redirect(origin);
   }
 
-  const links = await getLinksWithAnalytics(true);
+  const account = accountSlug ? await getAccountBySlug(accountSlug) : null;
+  const accountId = account?.id ?? DEFAULT_ACCOUNT_ID;
+  const links = await getLinksWithAnalytics(true, accountId);
   const link = links.find((item) => item.id === linkId && item.is_active);
 
   if (!link) {
     return NextResponse.redirect(origin);
   }
 
-  await registerClick(link.id, request.headers.get("user-agent"), request.headers.get("referer"));
+  await registerClick(link.id, request.headers.get("user-agent"), request.headers.get("referer"), accountId);
 
   const destination = buildDestination(link.url, origin, link.title, link.lead_message);
   return NextResponse.redirect(destination);

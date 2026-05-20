@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { cookies } from "next/headers";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
@@ -6,9 +7,10 @@ import { AdminSessionGuard } from "@/components/admin-session-guard";
 import { AdminWorkspace } from "@/components/admin-workspace";
 import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
+import { DEFAULT_ACCOUNT_ID, getAccountById } from "@/lib/accounts";
 import { ADMIN_SESSION_COOKIE, getAdminIdleTimeoutMinutes, verifySessionToken } from "@/lib/auth";
 import { getAdminAccountInfo, listAdminUsers } from "@/lib/admin-account";
-import { getSiteSettings } from "@/lib/site-settings";
+import { getSiteSettingsForAccount } from "@/lib/site-settings";
 import type { AdminRole } from "@/types/admin-user";
 
 function normalizeRole(role: string | undefined): AdminRole {
@@ -18,8 +20,14 @@ function normalizeRole(role: string | undefined): AdminRole {
 export default async function AdminPage() {
   const session = await verifySessionToken(cookies().get(ADMIN_SESSION_COOKIE)?.value ?? null);
   const currentRole = normalizeRole(session?.role);
+  const accountId = session?.account_id ?? DEFAULT_ACCOUNT_ID;
   const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
-  const [settings, account, users] = await Promise.all([getSiteSettings(), getAdminAccountInfo(), listAdminUsers()]);
+  const [settings, account, users, currentAccount] = await Promise.all([
+    getSiteSettingsForAccount(accountId),
+    getAdminAccountInfo(session?.user_id, accountId),
+    listAdminUsers(accountId),
+    getAccountById(accountId)
+  ]);
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
@@ -49,6 +57,14 @@ export default async function AdminPage() {
               <ArrowLeft className="h-4 w-4" />
               Ver pagina publica
             </Link>
+            {currentAccount?.slug && currentAccount.slug !== "default" && (
+              <Link
+                href={`/${currentAccount.slug}` as Route}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border bg-white px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                Ver pagina da conta
+              </Link>
+            )}
             <AdminLogoutButton />
           </div>
         </header>

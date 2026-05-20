@@ -1,11 +1,18 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowRight, BarChart3, CheckCircle2, ShieldCheck, Zap } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { LinkIcon } from "@/components/icon-picker";
 import { Badge } from "@/components/ui/badge";
-import { DEFAULT_ACCOUNT_ID, getDefaultAccount } from "@/lib/accounts";
+import { getAccountBySlug } from "@/lib/accounts";
 import { getLinksWithAnalytics } from "@/lib/links";
 import { getSiteSettingsForAccount } from "@/lib/site-settings";
+
+type PublicAccountPageProps = {
+  params: {
+    slug: string;
+  };
+};
 
 function groupByCategory<T extends { category: string }>(items: T[]) {
   return items.reduce<Record<string, T[]>>((acc, item) => {
@@ -15,11 +22,16 @@ function groupByCategory<T extends { category: string }>(items: T[]) {
   }, {});
 }
 
-export default async function HomePage() {
-  const account = await getDefaultAccount();
+export default async function PublicAccountPage({ params }: PublicAccountPageProps) {
+  const account = await getAccountBySlug(params.slug);
+
+  if (!account) {
+    notFound();
+  }
+
   const [links, settings] = await Promise.all([
-    getLinksWithAnalytics(false, DEFAULT_ACCOUNT_ID),
-    getSiteSettingsForAccount(DEFAULT_ACCOUNT_ID)
+    getLinksWithAnalytics(false, account.id),
+    getSiteSettingsForAccount(account.id)
   ]);
   const groupedLinks = groupByCategory(links);
 

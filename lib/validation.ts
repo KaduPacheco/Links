@@ -168,6 +168,46 @@ export function parseAdminInvitePayload(input: unknown) {
   };
 }
 
+export function parseAccountSignupPayload(input: unknown) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Payload invalido.");
+  }
+
+  const payload = input as Record<string, unknown>;
+  const companyName = String(payload.companyName ?? "").trim();
+  const ownerName = String(payload.ownerName ?? "").trim();
+  const login = String(payload.login ?? "").trim().toLowerCase();
+  const password = String(payload.password ?? "");
+  const confirmPassword = String(payload.confirmPassword ?? "");
+
+  if (companyName.length < 2) {
+    throw new Error("Informe o nome da empresa com pelo menos 2 caracteres.");
+  }
+
+  if (ownerName.length < 2) {
+    throw new Error("Informe seu nome com pelo menos 2 caracteres.");
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
+    throw new Error("Informe um e-mail valido.");
+  }
+
+  if (password.length < 8) {
+    throw new Error("A senha deve ter pelo menos 8 caracteres.");
+  }
+
+  if (password !== confirmPassword) {
+    throw new Error("A confirmacao da senha nao confere.");
+  }
+
+  return {
+    companyName,
+    ownerName,
+    login,
+    password
+  };
+}
+
 export function parseInviteAcceptancePayload(input: unknown) {
   if (!input || typeof input !== "object") {
     throw new Error("Payload invalido.");

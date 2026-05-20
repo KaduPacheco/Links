@@ -6,6 +6,7 @@ export type AdminUserStatus = (typeof adminUserStatuses)[number];
 
 export type AdminUser = {
   id: string;
+  account_id: string;
   name: string;
   login: string;
   role: AdminRole;

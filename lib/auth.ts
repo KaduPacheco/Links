@@ -9,6 +9,7 @@ const DEFAULT_IDLE_TIMEOUT_MINUTES = 30;
 export type AdminSessionPayload = {
   sub: "admin";
   user_id: string;
+  account_id: string;
   login: string;
   role: string;
   exp: number;
@@ -114,7 +115,7 @@ export async function verifySessionToken(token: string | null) {
   }
 }
 
-export async function createSessionToken(login: string, userId = "admin", role = "owner") {
+export async function createSessionToken(login: string, userId = "admin", role = "owner", accountId = "00000000-0000-0000-0000-000000000001") {
   const secret = getSessionSecret();
   const sessionTtlSeconds = getSessionTtlSeconds();
 
@@ -126,6 +127,7 @@ export async function createSessionToken(login: string, userId = "admin", role =
   const encodedPayload = encodeJson({
     sub: "admin",
     user_id: userId,
+    account_id: accountId,
     login,
     role,
     exp: Math.floor(Date.now() / 1000) + sessionTtlSeconds

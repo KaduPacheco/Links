@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { LockKeyhole } from "lucide-react";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { BrandMark } from "@/components/brand-mark";
@@ -26,7 +27,7 @@ export default async function AdminLoginPage() {
             <CardDescription>Entre para gerenciar links, mensagens automaticas e analytics.</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-5">
           {authReady ? (
             <Suspense fallback={null}>
               <AdminLoginForm />
@@ -36,6 +37,12 @@ export default async function AdminLoginPage() {
               {authError ?? "Auth admin nao configurada."}
             </p>
           )}
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+            Nova empresa?{" "}
+            <Link href="/cadastro" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-sky-300">
+              Criar conta
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </main>

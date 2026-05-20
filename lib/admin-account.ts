@@ -1,9 +1,15 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { createAccountSlug, DEFAULT_ACCOUNT_ID, ensureAccountsSchema } from "@/lib/accounts";
 import { getDatabaseConfigMessage, getPool } from "@/lib/db";
+import { createDemoLinksForAccount } from "@/lib/links";
+import { updateSiteSettings } from "@/lib/site-settings";
 import type { AdminInviteResult, AdminRole, AdminUser } from "@/types/admin-user";
+import { defaultSiteSettings } from "@/types/site-settings";
+import type { Account } from "@/types/account";
 
 type StoredAdminUser = {
   id: string | number;
+  account_id: string | null;
   name: string | null;
   login: string;
   password_hash: string;
@@ -22,6 +28,7 @@ export type AdminAccountInfo = {
 
 type ResolvedCredentials = {
   id: string;
+  accountId: string;
   name: string;
   login: string;
   role: AdminRole;
@@ -30,7 +37,15 @@ type ResolvedCredentials = {
   source: "database" | "environment";
 };
 
+type CreateAccountInput = {
+  companyName: string;
+  ownerName: string;
+  login: string;
+  password: string;
+};
+
 let schemaReadyPromise: Promise<ReturnType<typeof getPool>> | null = null;
+const reservedAccountSlugs = new Set(["admin", "api", "blog", "materiais", "cadastro", "default"]);
 
 function getEnvAdminLogin() {
   return process.env.ADMIN_EMAIL?.trim() || process.env.ADMIN_USERNAME?.trim() || null;
@@ -66,6 +81,7 @@ function verifyHashedPassword(password: string, storedHash: string) {
 function mapAdminUser(row: StoredAdminUser): AdminUser {
   return {
     id: String(row.id),
+    account_id: row.account_id ?? DEFAULT_ACCOUNT_ID,
     name: row.name ?? row.login,
     login: row.login,
     role: row.role ?? "owner",
@@ -87,8 +103,12 @@ function buildInviteUrl(token: string, requestOrigin?: string) {
   return `${normalizedBase.replace(/\/$/, "")}/admin/convite/${token}`;
 }
 
+function isReservedAccountSlug(slug: string) {
+  return reservedAccountSlugs.has(slug);
+}
+
 async function ensureAdminUsersSchema() {
-  const pool = getPool();
+  const pool = await ensureAccountsSchema();
 
   if (!pool) {
     return null;
@@ -102,6 +122,7 @@ async function ensureAdminUsersSchema() {
     await pool.query(`
       create table if not exists admin_users (
         id integer primary key default 1,
+        account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
         login text not null,
         password_hash text not null,
         created_at timestamptz not null default now(),
@@ -117,12 +138,21 @@ async function ensureAdminUsersSchema() {
     await pool.query(`
       alter table admin_users
       add column if not exists name text,
+      add column if not exists account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
       add column if not exists role text not null default 'owner',
       add column if not exists status text not null default 'active',
       add column if not exists invite_token_hash text,
       add column if not exists invited_at timestamptz,
       add column if not exists accepted_at timestamptz,
       add column if not exists created_at timestamptz not null default now();
+    `);
+
+    await pool.query(`
+      drop index if exists admin_users_login_unique_idx;
+    `);
+
+    await pool.query(`
+      create unique index if not exists admin_users_account_login_unique_idx on admin_users (account_id, lower(login));
     `);
 
     await pool.query(`
@@ -155,6 +185,7 @@ async function readActiveStoredAdminUser(login?: string) {
     `
       select
         id::text,
+        account_id::text,
         name,
         login,
         password_hash,
@@ -177,12 +208,53 @@ async function readActiveStoredAdminUser(login?: string) {
   return rows[0] ?? null;
 }
 
+async function readActiveStoredAdminUserById(userId: string, accountId: string) {
+  const pool = await ensureAdminUsersSchema();
+
+  if (!pool) {
+    return null;
+  }
+
+  const { rows } = await pool.query<StoredAdminUser>(
+    `
+      select
+        id::text,
+        account_id::text,
+        name,
+        login,
+        password_hash,
+        role,
+        status,
+        created_at::text,
+        updated_at::text,
+        invited_at::text,
+        accepted_at::text
+      from admin_users
+      where id::text = $1
+        and account_id = $2
+        and status = 'active'
+        and password_hash <> ''
+      limit 1
+    `,
+    [userId, accountId]
+  );
+
+  return rows[0] ?? null;
+}
+
 async function resolveAdminCredentials(login?: string): Promise<ResolvedCredentials | null> {
-  const storedUser = await readActiveStoredAdminUser(login);
+  let storedUser: StoredAdminUser | null = null;
+
+  try {
+    storedUser = await readActiveStoredAdminUser(login);
+  } catch (error) {
+    console.error("PostgreSQL admin user lookup failed", error);
+  }
 
   if (storedUser) {
     return {
       id: String(storedUser.id),
+      accountId: storedUser.account_id ?? DEFAULT_ACCOUNT_ID,
       name: storedUser.name ?? storedUser.login,
       login: storedUser.login,
       role: storedUser.role ?? "owner",
@@ -201,6 +273,7 @@ async function resolveAdminCredentials(login?: string): Promise<ResolvedCredenti
 
   return {
     id: "env-admin",
+    accountId: DEFAULT_ACCOUNT_ID,
     name: envLogin,
     login: envLogin,
     role: "owner",
@@ -229,8 +302,17 @@ export async function getAdminAuthConfigError() {
   return missing.length ? `Auth admin incompleta. Defina: ${missing.join(", ")}.` : null;
 }
 
-export async function getAdminAccountInfo(): Promise<AdminAccountInfo> {
-  const credentials = await resolveAdminCredentials();
+export async function getAdminAccountInfo(sessionUserId?: string, sessionAccountId = DEFAULT_ACCOUNT_ID): Promise<AdminAccountInfo> {
+  const sessionUser =
+    sessionUserId && sessionUserId !== "env-admin"
+      ? await readActiveStoredAdminUserById(sessionUserId, sessionAccountId)
+      : null;
+  const credentials = sessionUser
+    ? {
+        login: sessionUser.login,
+        source: "database" as const
+      }
+    : await resolveAdminCredentials();
 
   return {
     login: credentials?.login ?? null,
@@ -242,7 +324,13 @@ export async function validateAdminCredentials(login: string, password: string) 
   const credentials = await resolveAdminCredentials(login);
 
   if (!credentials || login !== credentials.login) {
-    return { valid: false, login: null as string | null, userId: null as string | null, role: null as AdminRole | null };
+    return {
+      valid: false,
+      login: null as string | null,
+      userId: null as string | null,
+      accountId: null as string | null,
+      role: null as AdminRole | null
+    };
   }
 
   const valid =
@@ -254,12 +342,139 @@ export async function validateAdminCredentials(login: string, password: string) 
     valid,
     login: valid ? credentials.login : null,
     userId: valid ? credentials.id : null,
+    accountId: valid ? credentials.accountId : null,
     role: valid ? credentials.role : null
   };
 }
 
-export async function updateAdminPassword(currentPassword: string, nextPassword: string) {
-  const credentials = await resolveAdminCredentials();
+export async function createAccountWithOwner(input: CreateAccountInput): Promise<{ account: Account; user: AdminUser }> {
+  const pool = await ensureAdminUsersSchema();
+
+  if (!pool) {
+    throw new Error(getDatabaseConfigMessage());
+  }
+
+  const existingLogin = await pool.query<{ id: string }>(
+    `
+      select id::text
+      from admin_users
+      where lower(login) = lower($1)
+      limit 1
+    `,
+    [input.login]
+  );
+
+  if (existingLogin.rows[0]) {
+    throw new Error("Ja existe uma conta cadastrada com este e-mail.");
+  }
+
+  const baseSlug = createAccountSlug(input.companyName);
+  let slug = isReservedAccountSlug(baseSlug) ? `${baseSlug}-links` : baseSlug;
+
+  for (let attempt = 1; attempt <= 50; attempt += 1) {
+    const { rows } = await pool.query<{ id: string }>("select id::text from accounts where slug = $1 limit 1", [slug]);
+
+    if (!rows[0] && !isReservedAccountSlug(slug)) {
+      break;
+    }
+
+    slug = `${baseSlug}-${attempt + 1}`;
+  }
+
+  const passwordHash = hashPassword(input.password);
+
+  try {
+    await pool.query("begin");
+
+    const accountResult = await pool.query<Account>(
+      `
+        insert into accounts (name, slug)
+        values ($1, $2)
+        returning id::text, name, slug, created_at::text, updated_at::text
+      `,
+      [input.companyName, slug]
+    );
+
+    const account = accountResult.rows[0];
+
+    const userResult = await pool.query<StoredAdminUser>(
+      `
+        insert into admin_users (id, account_id, name, login, password_hash, role, status, accepted_at, updated_at)
+        values ((select coalesce(max(id), 0) + 1 from admin_users), $1, $2, $3, $4, 'owner', 'active', now(), now())
+        returning
+          id::text,
+          account_id::text,
+          name,
+          login,
+          password_hash,
+          role,
+          status,
+          created_at::text,
+          updated_at::text,
+          invited_at::text,
+          accepted_at::text
+      `,
+      [account.id, input.ownerName, input.login, passwordHash]
+    );
+
+    await pool.query("commit");
+
+    try {
+      await updateSiteSettings(
+        {
+          ...defaultSiteSettings,
+          company_name: account.name,
+          brand_label: "Links oficiais",
+          company_logo_url: null,
+          hero_badge: "Canais oficiais da empresa",
+          hero_description: `Encontre os principais canais, materiais e contatos oficiais de ${account.name}.`,
+          links_heading: "Links oficiais",
+          links_description: "Acesse os principais canais oficiais desta empresa."
+        },
+        account.id
+      );
+    } catch (error) {
+      console.error("PostgreSQL signup settings creation failed", error);
+    }
+
+    try {
+      await createDemoLinksForAccount(account.id);
+    } catch (error) {
+      console.error("PostgreSQL signup demo links creation failed", error);
+    }
+
+    return {
+      account,
+      user: mapAdminUser(userResult.rows[0])
+    };
+  } catch (error) {
+    await pool.query("rollback");
+    throw error;
+  }
+}
+
+export async function updateAdminPassword(
+  currentPassword: string,
+  nextPassword: string,
+  sessionUserId?: string,
+  sessionAccountId = DEFAULT_ACCOUNT_ID
+) {
+  const sessionUser =
+    sessionUserId && sessionUserId !== "env-admin"
+      ? await readActiveStoredAdminUserById(sessionUserId, sessionAccountId)
+      : null;
+  const credentials = sessionUser
+    ? {
+        id: String(sessionUser.id),
+        accountId: sessionUser.account_id ?? DEFAULT_ACCOUNT_ID,
+        name: sessionUser.name ?? sessionUser.login,
+        login: sessionUser.login,
+        role: sessionUser.role ?? "owner",
+        passwordHash: sessionUser.password_hash,
+        plainPassword: null,
+        source: "database" as const
+      }
+    : await resolveAdminCredentials();
 
   if (!credentials) {
     throw new Error("Auth admin nao configurada.");
@@ -294,11 +509,12 @@ export async function updateAdminPassword(currentPassword: string, nextPassword:
   } else {
     await pool.query(
       `
-        insert into admin_users (id, name, login, password_hash, role, status, accepted_at, updated_at)
-        values (1, $1, $2, $3, 'owner', 'active', now(), now())
+        insert into admin_users (id, account_id, name, login, password_hash, role, status, accepted_at, updated_at)
+        values (1, $1, $2, $3, $4, 'owner', 'active', now(), now())
         on conflict (id)
         do update
         set
+          account_id = excluded.account_id,
           name = excluded.name,
           login = excluded.login,
           password_hash = excluded.password_hash,
@@ -307,7 +523,7 @@ export async function updateAdminPassword(currentPassword: string, nextPassword:
           accepted_at = now(),
           updated_at = now()
       `,
-      [credentials.name, credentials.login, passwordHash]
+      [credentials.accountId, credentials.name, credentials.login, passwordHash]
     );
   }
 
@@ -317,7 +533,7 @@ export async function updateAdminPassword(currentPassword: string, nextPassword:
   };
 }
 
-export async function listAdminUsers(): Promise<AdminUser[]> {
+export async function listAdminUsers(accountId = DEFAULT_ACCOUNT_ID): Promise<AdminUser[]> {
   const pool = await ensureAdminUsersSchema();
 
   if (!pool) {
@@ -328,6 +544,7 @@ export async function listAdminUsers(): Promise<AdminUser[]> {
     `
       select
         id::text,
+        account_id::text,
         name,
         login,
         password_hash,
@@ -338,8 +555,10 @@ export async function listAdminUsers(): Promise<AdminUser[]> {
         invited_at::text,
         accepted_at::text
       from admin_users
+      where account_id = $1
       order by created_at asc, id::text asc
-    `
+    `,
+    [accountId]
   );
 
   return rows.map(mapAdminUser);
@@ -347,6 +566,7 @@ export async function listAdminUsers(): Promise<AdminUser[]> {
 
 export async function createAdminInvite(
   input: { name: string; login: string; role: AdminRole },
+  accountId = DEFAULT_ACCOUNT_ID,
   requestOrigin?: string
 ): Promise<AdminInviteResult> {
   const pool = await ensureAdminUsersSchema();
@@ -358,15 +578,19 @@ export async function createAdminInvite(
   const token = randomBytes(32).toString("base64url");
   const inviteTokenHash = hashInviteToken(token);
 
-  const existing = await pool.query<{ id: string; status: string }>(
+  const existing = await pool.query<{ id: string; account_id: string; status: string }>(
     `
-      select id::text, status
+      select id::text, account_id::text, status
       from admin_users
       where lower(login) = lower($1)
       limit 1
     `,
     [input.login]
   );
+
+  if (existing.rows[0] && existing.rows[0].account_id !== accountId) {
+    throw new Error("Este e-mail ja esta cadastrado em outra conta.");
+  }
 
   if (existing.rows[0]?.status === "active") {
     throw new Error("Ja existe um usuario ativo com este e-mail.");
@@ -388,6 +612,7 @@ export async function createAdminInvite(
           where id::text = $1
           returning
             id::text,
+            account_id::text,
             name,
             login,
             password_hash,
@@ -401,6 +626,7 @@ export async function createAdminInvite(
       : `
           insert into admin_users (
             id,
+            account_id,
             name,
             login,
             password_hash,
@@ -412,6 +638,7 @@ export async function createAdminInvite(
           )
           values (
             (select coalesce(max(id), 0) + 1 from admin_users),
+            $5,
             $2,
             $1,
             '',
@@ -423,6 +650,7 @@ export async function createAdminInvite(
           )
           returning
             id::text,
+            account_id::text,
             name,
             login,
             password_hash,
@@ -433,7 +661,9 @@ export async function createAdminInvite(
             invited_at::text,
             accepted_at::text
         `,
-    existing.rows[0] ? [existing.rows[0].id, input.name, input.role, inviteTokenHash] : [input.login, input.name, input.role, inviteTokenHash]
+    existing.rows[0]
+      ? [existing.rows[0].id, input.name, input.role, inviteTokenHash]
+      : [input.login, input.name, input.role, inviteTokenHash, accountId]
   );
 
   return {
@@ -465,6 +695,7 @@ export async function acceptAdminInvite(token: string, password: string) {
         and status = 'pending'
       returning
         id::text,
+        account_id::text,
         name,
         login,
         password_hash,
@@ -485,7 +716,7 @@ export async function acceptAdminInvite(token: string, password: string) {
   return mapAdminUser(rows[0]);
 }
 
-export async function updateAdminUserStatus(id: string, status: "active" | "inactive") {
+export async function updateAdminUserStatus(id: string, status: "active" | "inactive", accountId = DEFAULT_ACCOUNT_ID) {
   const pool = await ensureAdminUsersSchema();
 
   if (!pool) {
@@ -496,9 +727,10 @@ export async function updateAdminUserStatus(id: string, status: "active" | "inac
     `
       update admin_users
       set status = $2, updated_at = now()
-      where id::text = $1
+      where id::text = $1 and account_id = $3
       returning
         id::text,
+        account_id::text,
         name,
         login,
         password_hash,
@@ -509,7 +741,7 @@ export async function updateAdminUserStatus(id: string, status: "active" | "inac
         invited_at::text,
         accepted_at::text
     `,
-    [id, status]
+    [id, status, accountId]
   );
 
   if (!rows[0]) {

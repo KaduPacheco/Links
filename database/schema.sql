@@ -1,7 +1,20 @@
 create extension if not exists "pgcrypto";
 
+create table if not exists accounts (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text not null unique,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into accounts (id, name, slug)
+values ('00000000-0000-0000-0000-000000000001', 'Ponto Eletronico', 'default')
+on conflict (id) do nothing;
+
 create table if not exists links (
   id uuid primary key default gen_random_uuid(),
+  account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
   title text not null,
   url text not null,
   description text,
@@ -15,7 +28,8 @@ create table if not exists links (
 );
 
 create table if not exists site_settings (
-  id integer primary key default 1 check (id = 1),
+  id integer primary key default 1,
+  account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
   company_name text not null default 'Ponto Eletronico',
   brand_label text not null default 'Links oficiais',
   company_logo_url text,
@@ -28,6 +42,7 @@ create table if not exists site_settings (
 
 create table if not exists admin_users (
   id integer primary key default 1,
+  account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
   name text,
   login text not null,
   password_hash text not null,
@@ -42,6 +57,7 @@ create table if not exists admin_users (
 
 create table if not exists link_clicks (
   id uuid primary key default gen_random_uuid(),
+  account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
   link_id uuid not null references links(id) on delete cascade,
   clicked_at timestamptz not null default now(),
   user_agent text,
@@ -50,6 +66,9 @@ create table if not exists link_clicks (
 
 create index if not exists links_active_order_idx on links (is_active, display_order);
 create index if not exists link_clicks_link_clicked_idx on link_clicks (link_id, clicked_at desc);
+create index if not exists links_account_active_order_idx on links (account_id, is_active, display_order);
+create unique index if not exists site_settings_account_unique_idx on site_settings (account_id);
+create unique index if not exists admin_users_account_login_unique_idx on admin_users (account_id, lower(login));
 create unique index if not exists admin_users_login_unique_idx on admin_users (lower(login));
 create unique index if not exists admin_users_invite_token_unique_idx on admin_users (invite_token_hash) where invite_token_hash is not null;
 
@@ -72,6 +91,7 @@ execute function set_updated_at();
 create or replace view links_with_analytics as
 select
   links.id,
+  links.account_id,
   links.title,
   links.url,
   links.description,
@@ -85,20 +105,20 @@ select
   max(link_clicks.clicked_at) as last_clicked_at,
   links.lead_message
 from links
-left join link_clicks on link_clicks.link_id = links.id
+left join link_clicks on link_clicks.link_id = links.id and link_clicks.account_id = links.account_id
 group by links.id;
 
-insert into links (title, url, description, icon, category, lead_message, is_active, display_order)
+insert into links (account_id, title, url, description, icon, category, lead_message, is_active, display_order)
 values
-  ('Conheca o Ponto Eletronico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestao de equipes.', 'MonitorCheck', 'Comercial', null, true, 1),
-  ('Solicitar Demonstracao', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentacao guiada.', 'CalendarClock', 'Comercial', 'Ola! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstracao.', true, 2),
-  ('Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire duvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', 'Ola! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
-  ('Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteudos da marca.', 'Instagram', 'Redes sociais', null, true, 4),
-  ('Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'Conteúdo', null, true, 5),
-  ('Materiais Ricos', '/materiais', 'Guias, checklists e conteudos praticos para RH.', 'FileText', 'Materiais', null, true, 6)
+  ('00000000-0000-0000-0000-000000000001', 'Conheca o Ponto Eletronico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestao de equipes.', 'MonitorCheck', 'Comercial', null, true, 1),
+  ('00000000-0000-0000-0000-000000000001', 'Solicitar Demonstracao', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentacao guiada.', 'CalendarClock', 'Comercial', 'Ola! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstracao.', true, 2),
+  ('00000000-0000-0000-0000-000000000001', 'Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire duvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', 'Ola! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
+  ('00000000-0000-0000-0000-000000000001', 'Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteudos da marca.', 'Instagram', 'Redes sociais', null, true, 4),
+  ('00000000-0000-0000-0000-000000000001', 'Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'Conteúdo', null, true, 5),
+  ('00000000-0000-0000-0000-000000000001', 'Materiais Ricos', '/materiais', 'Guias, checklists e conteudos praticos para RH.', 'FileText', 'Materiais', null, true, 6)
 on conflict do nothing;
 
-insert into site_settings (id, company_name, brand_label, company_logo_url, hero_badge, hero_description, links_heading, links_description)
+insert into site_settings (id, account_id, company_name, brand_label, company_logo_url, hero_badge, hero_description, links_heading, links_description)
 values
-  (1, 'Ponto Eletronico', 'Links oficiais', null, 'Controle de jornada simples, seguro e inteligente', 'Sistema inteligente para controle de jornada, ponto online e gestao de equipes.', 'Links oficiais', 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.')
+  (1, '00000000-0000-0000-0000-000000000001', 'Ponto Eletronico', 'Links oficiais', null, 'Controle de jornada simples, seguro e inteligente', 'Sistema inteligente para controle de jornada, ponto online e gestao de equipes.', 'Links oficiais', 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.')
 on conflict (id) do nothing;

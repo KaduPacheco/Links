@@ -1,6 +1,6 @@
 import { getPool } from "@/lib/db";
 import { logger } from "@/lib/logger";
-import type { AdminAuditEvent, AdminAuditPage } from "@/types/admin-audit";
+import type { AdminAuditAction, AdminAuditEvent, AdminAuditPage, AdminAuditTimeRange } from "@/types/admin-audit";
 
 type AuditEventInput = {
   accountId?: string | null;
@@ -17,6 +17,12 @@ type AuditEventInput = {
 
 type AdminAuditRow = Omit<AdminAuditEvent, "metadata"> & {
   metadata: Record<string, unknown> | null;
+};
+
+type AdminAuditFilters = {
+  action?: AdminAuditAction | "all";
+  actor?: string;
+  timeRange?: AdminAuditTimeRange;
 };
 
 export async function recordAdminAuditEvent(event: AuditEventInput) {
@@ -65,7 +71,30 @@ export async function recordAdminAuditEvent(event: AuditEventInput) {
   }
 }
 
-export async function listAdminAuditEvents(accountId: string, limit = 25, before?: string | null): Promise<AdminAuditPage> {
+function resolveTimeRangeStart(timeRange: AdminAuditTimeRange | undefined) {
+  const now = Date.now();
+
+  if (timeRange === "7d") {
+    return new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  if (timeRange === "30d") {
+    return new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  if (timeRange === "all") {
+    return null;
+  }
+
+  return new Date(now - 24 * 60 * 60 * 1000).toISOString();
+}
+
+export async function listAdminAuditEvents(
+  accountId: string,
+  limit = 25,
+  before?: string | null,
+  filters: AdminAuditFilters = {}
+): Promise<AdminAuditPage> {
   const pool = getPool();
 
   if (!pool) {
@@ -76,6 +105,9 @@ export async function listAdminAuditEvents(accountId: string, limit = 25, before
   }
 
   const normalizedLimit = Math.min(Math.max(limit, 1), 100);
+  const action = filters.action && filters.action !== "all" ? filters.action : null;
+  const actor = filters.actor?.trim() ? `%${filters.actor.trim().toLowerCase()}%` : null;
+  const since = resolveTimeRangeStart(filters.timeRange);
 
   try {
     const { rows } = await pool.query<AdminAuditRow>(
@@ -96,10 +128,13 @@ export async function listAdminAuditEvents(accountId: string, limit = 25, before
         from admin_audit_logs
         where account_id = $1
           and ($2::timestamptz is null or created_at < $2::timestamptz)
+          and ($3::text is null or action = $3)
+          and ($4::text is null or lower(coalesce(actor_login, '')) like $4)
+          and ($5::timestamptz is null or created_at >= $5::timestamptz)
         order by created_at desc, id desc
-        limit $3
+        limit $6
       `,
-      [accountId, before ?? null, normalizedLimit + 1]
+      [accountId, before ?? null, action, actor, since, normalizedLimit + 1]
     );
 
     const hasMore = rows.length > normalizedLimit;
@@ -116,7 +151,10 @@ export async function listAdminAuditEvents(accountId: string, limit = 25, before
     logger.error("Failed to load admin audit events", error, {
       accountId,
       limit: normalizedLimit,
-      before: before ?? null
+      before: before ?? null,
+      action,
+      actor,
+      since
     });
 
     return {

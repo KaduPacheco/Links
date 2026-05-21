@@ -13,6 +13,7 @@ import { getAdminIdleTimeoutMinutes } from "@/lib/auth";
 import { getAdminAccountInfo, listAdminUsers } from "@/lib/admin-account";
 import { readAdminSession } from "@/lib/admin-session";
 import { getSiteSettingsForAccount } from "@/lib/site-settings";
+import { getTenantDashboard } from "@/lib/tenant-dashboard";
 import type { AdminRole } from "@/types/admin-user";
 
 function normalizeRole(role: string | undefined): AdminRole {
@@ -29,12 +30,13 @@ export default async function AdminPage() {
   const currentRole = normalizeRole(session?.role);
   const accountId = session.account_id;
   const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
-  const [settings, account, users, currentAccount, auditPage] = await Promise.all([
+  const [settings, account, users, currentAccount, auditPage, tenantDashboard] = await Promise.all([
     getSiteSettingsForAccount(accountId),
     getAdminAccountInfo(session?.user_id, accountId),
     listAdminUsers(accountId),
     getAccountById(accountId),
-    currentRole === "editor" ? Promise.resolve({ data: [], nextCursor: null }) : listAdminAuditEvents(accountId, 25)
+    currentRole === "editor" ? Promise.resolve({ data: [], nextCursor: null }) : listAdminAuditEvents(accountId, 25),
+    getTenantDashboard(accountId)
   ]);
 
   return (
@@ -82,6 +84,7 @@ export default async function AdminPage() {
           initialAccount={account}
           initialUsers={users}
           initialAuditPage={auditPage}
+          initialTenantDashboard={tenantDashboard}
           currentRole={currentRole}
         />
       </div>

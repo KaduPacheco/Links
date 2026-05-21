@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Activity, Link2, Settings2, UsersRound } from "lucide-react";
+import { Activity, LayoutDashboard, Link2, Settings2, UsersRound } from "lucide-react";
 import { AdminAuditLog } from "@/components/admin-audit-log";
 import { AdminLinkManager } from "@/components/admin-link-manager";
 import { AdminSettingsManager } from "@/components/admin-settings-manager";
+import { AdminTenantDashboard } from "@/components/admin-tenant-dashboard";
 import { AdminUserManager } from "@/components/admin-user-manager";
 import { Button } from "@/components/ui/button";
 import { type AdminAuditPage } from "@/types/admin-audit";
 import { type AdminRole, type AdminUser } from "@/types/admin-user";
 import { type SiteSettings } from "@/types/site-settings";
+import { type TenantDashboardData } from "@/types/tenant-dashboard";
 
 type AdminWorkspaceProps = {
   initialSettings: SiteSettings;
@@ -19,16 +21,28 @@ type AdminWorkspaceProps = {
   };
   initialUsers: AdminUser[];
   initialAuditPage: AdminAuditPage;
+  initialTenantDashboard: TenantDashboardData;
   currentRole: AdminRole;
 };
 
-export function AdminWorkspace({ initialSettings, initialAccount, initialUsers, initialAuditPage, currentRole }: AdminWorkspaceProps) {
-  const [tab, setTab] = useState<"links" | "users" | "settings" | "audit">("links");
+export function AdminWorkspace({
+  initialSettings,
+  initialAccount,
+  initialUsers,
+  initialAuditPage,
+  initialTenantDashboard,
+  currentRole
+}: AdminWorkspaceProps) {
+  const [tab, setTab] = useState<"dashboard" | "links" | "users" | "settings" | "audit">("dashboard");
   const canViewAudit = currentRole !== "editor";
 
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap gap-2">
+        <Button type="button" variant={tab === "dashboard" ? "default" : "secondary"} onClick={() => setTab("dashboard")}>
+          <LayoutDashboard className="h-4 w-4" />
+          SaaS
+        </Button>
         <Button type="button" variant={tab === "links" ? "default" : "secondary"} onClick={() => setTab("links")}>
           <Link2 className="h-4 w-4" />
           Links
@@ -53,6 +67,7 @@ export function AdminWorkspace({ initialSettings, initialAccount, initialUsers, 
         )}
       </div>
 
+      {tab === "dashboard" && <AdminTenantDashboard initialData={initialTenantDashboard} />}
       {tab === "links" && (
         <AdminLinkManager />
       )}

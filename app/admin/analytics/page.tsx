@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { ArrowLeft, BarChart3, Clock, Trophy } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminSessionGuard } from "@/components/admin-session-guard";
@@ -7,15 +7,21 @@ import { BrandMark } from "@/components/brand-mark";
 import { LinkIcon } from "@/components/icon-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DEFAULT_ACCOUNT_ID } from "@/lib/accounts";
-import { ADMIN_SESSION_COOKIE, getAdminIdleTimeoutMinutes, verifySessionToken } from "@/lib/auth";
+import { getAdminIdleTimeoutMinutes } from "@/lib/auth";
+import { readAdminSession } from "@/lib/admin-session";
 import { getLinksWithAnalytics } from "@/lib/links";
 import { getSiteSettingsForAccount } from "@/lib/site-settings";
 import { formatDateTime } from "@/lib/utils";
+import { getCategoryLabel } from "@/types/link";
 
 export default async function AnalyticsPage() {
-  const session = await verifySessionToken(cookies().get(ADMIN_SESSION_COOKIE)?.value ?? null);
-  const accountId = session?.account_id ?? DEFAULT_ACCOUNT_ID;
+  const session = await readAdminSession();
+
+  if (!session) {
+    redirect("/admin/login?next=/admin/analytics");
+  }
+
+  const accountId = session.account_id;
   const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
   const [links, settings] = await Promise.all([getLinksWithAnalytics(true, accountId), getSiteSettingsForAccount(accountId)]);
   const rankedLinks = [...links].sort((a, b) => b.click_count - a.click_count);
@@ -111,7 +117,7 @@ export default async function AnalyticsPage() {
                       <h2 className="font-black text-slate-950 dark:text-slate-50">{item.title}</h2>
                       <p className="truncate text-sm text-slate-500 dark:text-slate-400">{item.url}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <Badge>{item.category}</Badge>
+                        <Badge>{getCategoryLabel(item.category)}</Badge>
                         {!item.is_active && (
                           <Badge className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                             Inativo

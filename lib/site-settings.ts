@@ -1,80 +1,13 @@
 import { unstable_noStore as noStore } from "next/cache";
-import { DEFAULT_ACCOUNT_ID, ensureAccountsSchema } from "@/lib/accounts";
-import { getDatabaseConfigMessage, getDatabaseSource, getPool } from "@/lib/db";
+import { DEFAULT_ACCOUNT_ID } from "@/lib/accounts";
+import { getDatabaseSource, getPool, requirePool } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { defaultSiteSettings, type SiteSettings } from "@/types/site-settings";
 
 type SiteSettingsRow = SiteSettings & {
   id: number;
   account_id: string;
 };
-
-async function ensureSiteSettingsSchema() {
-  const pool = await ensureAccountsSchema();
-
-  if (!pool) {
-    return null;
-  }
-
-  await pool.query(`
-    create table if not exists site_settings (
-      id integer primary key default 1 check (id = 1),
-      account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
-      company_name text not null default 'Ponto Eletronico',
-      brand_label text not null default 'Links oficiais',
-      company_logo_url text,
-      hero_badge text not null default 'Controle de jornada simples, seguro e inteligente',
-      hero_description text not null default 'Sistema inteligente para controle de jornada, ponto online e gestao de equipes.',
-      links_heading text not null default 'Links oficiais',
-      links_description text not null default 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.',
-      updated_at timestamptz not null default now()
-    );
-  `);
-
-  await pool.query(`
-    alter table site_settings
-    drop constraint if exists site_settings_id_check;
-  `);
-
-  await pool.query(`
-    alter table site_settings
-    add column if not exists account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade;
-  `);
-
-  await pool.query(`
-    create unique index if not exists site_settings_account_unique_idx on site_settings (account_id);
-  `);
-
-  await pool.query(
-    `
-      insert into site_settings (
-        id,
-        account_id,
-        company_name,
-        brand_label,
-        company_logo_url,
-        hero_badge,
-        hero_description,
-        links_heading,
-        links_description
-      )
-      values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      on conflict (id) do nothing
-    `,
-    [
-      1,
-      DEFAULT_ACCOUNT_ID,
-      defaultSiteSettings.company_name,
-      defaultSiteSettings.brand_label,
-      defaultSiteSettings.company_logo_url,
-      defaultSiteSettings.hero_badge,
-      defaultSiteSettings.hero_description,
-      defaultSiteSettings.links_heading,
-      defaultSiteSettings.links_description
-    ]
-  );
-
-  return pool;
-}
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   return getSiteSettingsForAccount(DEFAULT_ACCOUNT_ID);
@@ -89,8 +22,6 @@ export async function getSiteSettingsForAccount(accountId = DEFAULT_ACCOUNT_ID):
   }
 
   try {
-    await ensureSiteSettingsSchema();
-
     const { rows } = await pool.query<SiteSettingsRow>(
       `
         select
@@ -117,17 +48,16 @@ export async function getSiteSettingsForAccount(accountId = DEFAULT_ACCOUNT_ID):
     const { id: _id, account_id: _accountId, ...settings } = rows[0];
     return settings;
   } catch (error) {
-    console.error(`PostgreSQL site settings query failed using ${getDatabaseSource() ?? "unknown source"}`, error);
+    logger.error("PostgreSQL site settings query failed", error, {
+      accountId,
+      source: getDatabaseSource() ?? "unknown source"
+    });
     return defaultSiteSettings;
   }
 }
 
 export async function updateSiteSettings(payload: SiteSettings, accountId = DEFAULT_ACCOUNT_ID) {
-  const pool = await ensureSiteSettingsSchema();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
+  const pool = requirePool();
 
   await pool.query(
     `

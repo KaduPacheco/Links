@@ -1,15 +1,16 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminSessionGuard } from "@/components/admin-session-guard";
 import { AdminWorkspace } from "@/components/admin-workspace";
 import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
-import { DEFAULT_ACCOUNT_ID, getAccountById } from "@/lib/accounts";
-import { ADMIN_SESSION_COOKIE, getAdminIdleTimeoutMinutes, verifySessionToken } from "@/lib/auth";
+import { getAccountById } from "@/lib/accounts";
+import { getAdminIdleTimeoutMinutes } from "@/lib/auth";
 import { getAdminAccountInfo, listAdminUsers } from "@/lib/admin-account";
+import { readAdminSession } from "@/lib/admin-session";
 import { getSiteSettingsForAccount } from "@/lib/site-settings";
 import type { AdminRole } from "@/types/admin-user";
 
@@ -18,9 +19,14 @@ function normalizeRole(role: string | undefined): AdminRole {
 }
 
 export default async function AdminPage() {
-  const session = await verifySessionToken(cookies().get(ADMIN_SESSION_COOKIE)?.value ?? null);
+  const session = await readAdminSession();
+
+  if (!session) {
+    redirect("/admin/login?next=/admin");
+  }
+
   const currentRole = normalizeRole(session?.role);
-  const accountId = session?.account_id ?? DEFAULT_ACCOUNT_ID;
+  const accountId = session.account_id;
   const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
   const [settings, account, users, currentAccount] = await Promise.all([
     getSiteSettingsForAccount(accountId),

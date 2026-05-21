@@ -1,87 +1,15 @@
 import { unstable_noStore as noStore } from "next/cache";
-import type { LinkPayload, LinkWithAnalytics } from "@/types/link";
-import { DEFAULT_ACCOUNT_ID, ensureAccountsSchema } from "@/lib/accounts";
-import { getDatabaseConfigMessage, getDatabaseSource, getPool } from "@/lib/db";
+import { normalizeLinkCategory, type LinkPayload, type LinkWithAnalytics } from "@/types/link";
+import { DEFAULT_ACCOUNT_ID } from "@/lib/accounts";
+import { getDatabaseSource, getPool, requirePool } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { seedLinks } from "@/lib/seed-links";
 
-async function ensureLinksSchema() {
-  const pool = await ensureAccountsSchema();
-
-  if (!pool) {
-    return;
-  }
-
-  await pool.query(`
-    create table if not exists links (
-      id uuid primary key default gen_random_uuid(),
-      account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
-      title text not null,
-      url text not null,
-      description text,
-      icon text,
-      category text not null default 'Comercial',
-      lead_message text,
-      is_active boolean not null default true,
-      display_order integer not null default 0,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now()
-    );
-  `);
-
-  await pool.query(`
-    create table if not exists link_clicks (
-      id uuid primary key default gen_random_uuid(),
-      account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
-      link_id uuid not null references links(id) on delete cascade,
-      clicked_at timestamptz not null default now(),
-      user_agent text,
-      referrer text
-    );
-  `);
-
-  await pool.query(`
-    alter table links
-    add column if not exists account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
-    add column if not exists lead_message text;
-  `);
-
-  await pool.query(`
-    alter table link_clicks
-    add column if not exists account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade;
-  `);
-
-  await pool.query(`
-    update link_clicks
-    set account_id = links.account_id
-    from links
-    where link_clicks.link_id = links.id;
-  `);
-
-  await pool.query(`
-    drop view if exists links_with_analytics;
-  `);
-
-  await pool.query(`
-    create view links_with_analytics as
-    select
-      links.id,
-      links.account_id,
-      links.title,
-      links.url,
-      links.description,
-      links.icon,
-      links.category,
-      links.is_active,
-      links.display_order,
-      links.created_at,
-      links.updated_at,
-      count(link_clicks.id)::integer as click_count,
-      max(link_clicks.clicked_at) as last_clicked_at,
-      links.lead_message
-    from links
-    left join link_clicks on link_clicks.link_id = links.id and link_clicks.account_id = links.account_id
-    group by links.id;
-  `);
+function normalizeLinkRow<T extends { category: string }>(row: T): T {
+  return {
+    ...row,
+    category: normalizeLinkCategory(row.category)
+  };
 }
 
 export async function getLinksWithAnalytics(includeInactive = true, accountId = DEFAULT_ACCOUNT_ID): Promise<LinkWithAnalytics[]> {
@@ -93,8 +21,6 @@ export async function getLinksWithAnalytics(includeInactive = true, accountId = 
   }
 
   try {
-    await ensureLinksSchema();
-
     const { rows } = await pool.query<LinkWithAnalytics>(
       `
         select *
@@ -106,21 +32,19 @@ export async function getLinksWithAnalytics(includeInactive = true, accountId = 
       [includeInactive, accountId]
     );
 
-    return rows;
+    return rows.map(normalizeLinkRow);
   } catch (error) {
-    console.error(`PostgreSQL links query failed using ${getDatabaseSource() ?? "unknown source"}`, error);
+    logger.error("PostgreSQL links query failed", error, {
+      accountId,
+      includeInactive,
+      source: getDatabaseSource() ?? "unknown source"
+    });
     return accountId === DEFAULT_ACCOUNT_ID ? seedLinks.filter((link) => includeInactive || link.is_active) : [];
   }
 }
 
 export async function createLink(payload: LinkPayload, accountId = DEFAULT_ACCOUNT_ID) {
-  const pool = getPool();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
-
-  await ensureLinksSchema();
+  const pool = requirePool();
 
   const { rows } = await pool.query(
     `
@@ -141,17 +65,11 @@ export async function createLink(payload: LinkPayload, accountId = DEFAULT_ACCOU
     ]
   );
 
-  return rows[0];
+  return normalizeLinkRow(rows[0]);
 }
 
 export async function createDemoLinksForAccount(accountId: string) {
-  const pool = getPool();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
-
-  await ensureLinksSchema();
+  const pool = requirePool();
 
   const existing = await pool.query<{ count: string }>("select count(*)::text from links where account_id = $1", [accountId]);
 
@@ -181,20 +99,14 @@ export async function createDemoLinksForAccount(accountId: string) {
       ]
     );
 
-    created.push(rows[0]);
+      created.push(normalizeLinkRow(rows[0]));
   }
 
   return created;
 }
 
 export async function updateLink(id: string, payload: LinkPayload, accountId = DEFAULT_ACCOUNT_ID) {
-  const pool = getPool();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
-
-  await ensureLinksSchema();
+  const pool = requirePool();
 
   const { rows } = await pool.query(
     `
@@ -230,17 +142,11 @@ export async function updateLink(id: string, payload: LinkPayload, accountId = D
     throw new Error("Link não encontrado.");
   }
 
-  return rows[0];
+  return normalizeLinkRow(rows[0]);
 }
 
 export async function deleteLink(id: string, accountId = DEFAULT_ACCOUNT_ID) {
-  const pool = getPool();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
-
-  await ensureLinksSchema();
+  const pool = requirePool();
   await pool.query("delete from links where id = $1 and account_id = $2", [id, accountId]);
 }
 
@@ -257,6 +163,10 @@ export async function registerClick(linkId: string, userAgent: string | null, re
       [accountId, linkId, userAgent, referrer]
     );
   } catch (error) {
-    console.error(`PostgreSQL click insert failed using ${getDatabaseSource() ?? "unknown source"}`, error);
+    logger.error("PostgreSQL click insert failed", error, {
+      accountId,
+      linkId,
+      source: getDatabaseSource() ?? "unknown source"
+    });
   }
 }

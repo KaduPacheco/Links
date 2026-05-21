@@ -19,13 +19,20 @@ create table if not exists links (
   url text not null,
   description text,
   icon text default 'ExternalLink',
-  category text not null check (category in ('comercial', 'conteudo', 'suporte', 'materiais', 'redes-sociais')),
+  category text not null,
   lead_message text,
   is_active boolean not null default true,
   display_order integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table links
+drop constraint if exists links_category_check;
+
+alter table links
+add column if not exists account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
+add column if not exists lead_message text;
 
 create table if not exists site_settings (
   id integer primary key default 1,
@@ -39,6 +46,12 @@ create table if not exists site_settings (
   links_description text not null default 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.',
   updated_at timestamptz not null default now()
 );
+
+alter table site_settings
+drop constraint if exists site_settings_id_check;
+
+alter table site_settings
+add column if not exists account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade;
 
 create table if not exists admin_users (
   id integer primary key default 1,
@@ -55,6 +68,16 @@ create table if not exists admin_users (
   updated_at timestamptz not null default now()
 );
 
+alter table admin_users
+add column if not exists name text,
+add column if not exists account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
+add column if not exists role text not null default 'owner',
+add column if not exists status text not null default 'active',
+add column if not exists invite_token_hash text,
+add column if not exists invited_at timestamptz,
+add column if not exists accepted_at timestamptz,
+add column if not exists created_at timestamptz not null default now();
+
 create table if not exists link_clicks (
   id uuid primary key default gen_random_uuid(),
   account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
@@ -64,10 +87,21 @@ create table if not exists link_clicks (
   referrer text
 );
 
+alter table link_clicks
+add column if not exists account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade;
+
+update link_clicks
+set account_id = links.account_id
+from links
+where link_clicks.link_id = links.id;
+
 create index if not exists links_active_order_idx on links (is_active, display_order);
 create index if not exists link_clicks_link_clicked_idx on link_clicks (link_id, clicked_at desc);
 create index if not exists links_account_active_order_idx on links (account_id, is_active, display_order);
 create unique index if not exists site_settings_account_unique_idx on site_settings (account_id);
+
+drop index if exists admin_users_login_unique_idx;
+
 create unique index if not exists admin_users_account_login_unique_idx on admin_users (account_id, lower(login));
 create unique index if not exists admin_users_login_unique_idx on admin_users (lower(login));
 create unique index if not exists admin_users_invite_token_unique_idx on admin_users (invite_token_hash) where invite_token_hash is not null;
@@ -110,12 +144,12 @@ group by links.id;
 
 insert into links (account_id, title, url, description, icon, category, lead_message, is_active, display_order)
 values
-  ('00000000-0000-0000-0000-000000000001', 'Conheca o Ponto Eletronico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestao de equipes.', 'MonitorCheck', 'comercial', null, true, 1),
-  ('00000000-0000-0000-0000-000000000001', 'Solicitar Demonstracao', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentacao guiada.', 'CalendarClock', 'comercial', 'Ola! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstracao.', true, 2),
-  ('00000000-0000-0000-0000-000000000001', 'Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire duvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'suporte', 'Ola! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
-  ('00000000-0000-0000-0000-000000000001', 'Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteudos da marca.', 'Instagram', 'redes-sociais', null, true, 4),
-  ('00000000-0000-0000-0000-000000000001', 'Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'conteudo', null, true, 5),
-  ('00000000-0000-0000-0000-000000000001', 'Materiais Ricos', '/materiais', 'Guias, checklists e conteudos praticos para RH.', 'FileText', 'materiais', null, true, 6)
+  ('00000000-0000-0000-0000-000000000001', 'Conheca o Ponto Eletronico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestao de equipes.', 'MonitorCheck', 'Comercial', null, true, 1),
+  ('00000000-0000-0000-0000-000000000001', 'Solicitar Demonstracao', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentacao guiada.', 'CalendarClock', 'Comercial', 'Ola! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstracao.', true, 2),
+  ('00000000-0000-0000-0000-000000000001', 'Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire duvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', 'Ola! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
+  ('00000000-0000-0000-0000-000000000001', 'Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteudos da marca.', 'Instagram', 'Redes sociais', null, true, 4),
+  ('00000000-0000-0000-0000-000000000001', 'Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'ConteÃºdo', null, true, 5),
+  ('00000000-0000-0000-0000-000000000001', 'Materiais Ricos', '/materiais', 'Guias, checklists e conteudos praticos para RH.', 'FileText', 'Materiais', null, true, 6)
 on conflict do nothing;
 
 insert into site_settings (id, account_id, company_name, brand_label, company_logo_url, hero_badge, hero_description, links_heading, links_description)

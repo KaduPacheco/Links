@@ -1,7 +1,8 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { createAccountSlug, DEFAULT_ACCOUNT_ID, ensureAccountsSchema } from "@/lib/accounts";
-import { getDatabaseConfigMessage, getPool } from "@/lib/db";
+import { createAccountSlug, DEFAULT_ACCOUNT_ID } from "@/lib/accounts";
+import { getPool, requirePool } from "@/lib/db";
 import { createDemoLinksForAccount } from "@/lib/links";
+import { logger } from "@/lib/logger";
 import { updateSiteSettings } from "@/lib/site-settings";
 import type { AdminInviteResult, AdminRole, AdminUser } from "@/types/admin-user";
 import { defaultSiteSettings } from "@/types/site-settings";
@@ -44,7 +45,6 @@ type CreateAccountInput = {
   password: string;
 };
 
-let schemaReadyPromise: Promise<ReturnType<typeof getPool>> | null = null;
 const reservedAccountSlugs = new Set(["admin", "api", "blog", "materiais", "cadastro", "default"]);
 
 function getEnvAdminLogin() {
@@ -107,75 +107,8 @@ function isReservedAccountSlug(slug: string) {
   return reservedAccountSlugs.has(slug);
 }
 
-async function ensureAdminUsersSchema() {
-  const pool = await ensureAccountsSchema();
-
-  if (!pool) {
-    return null;
-  }
-
-  if (schemaReadyPromise) {
-    return schemaReadyPromise;
-  }
-
-  schemaReadyPromise = (async () => {
-    await pool.query(`
-      create table if not exists admin_users (
-        id integer primary key default 1,
-        account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
-        login text not null,
-        password_hash text not null,
-        created_at timestamptz not null default now(),
-        updated_at timestamptz not null default now()
-      );
-    `);
-
-    await pool.query(`
-      alter table admin_users
-      drop constraint if exists admin_users_id_check;
-    `);
-
-    await pool.query(`
-      alter table admin_users
-      add column if not exists name text,
-      add column if not exists account_id uuid not null default '${DEFAULT_ACCOUNT_ID}' references accounts(id) on delete cascade,
-      add column if not exists role text not null default 'owner',
-      add column if not exists status text not null default 'active',
-      add column if not exists invite_token_hash text,
-      add column if not exists invited_at timestamptz,
-      add column if not exists accepted_at timestamptz,
-      add column if not exists created_at timestamptz not null default now();
-    `);
-
-    await pool.query(`
-      drop index if exists admin_users_login_unique_idx;
-    `);
-
-    await pool.query(`
-      create unique index if not exists admin_users_account_login_unique_idx on admin_users (account_id, lower(login));
-    `);
-
-    await pool.query(`
-      create unique index if not exists admin_users_login_unique_idx on admin_users (lower(login));
-    `);
-
-    await pool.query(`
-      create unique index if not exists admin_users_invite_token_unique_idx
-      on admin_users (invite_token_hash)
-      where invite_token_hash is not null;
-    `);
-
-    return pool;
-  })().catch((error) => {
-    schemaReadyPromise = null;
-    throw error;
-  });
-
-  return schemaReadyPromise;
-}
-
 async function readActiveStoredAdminUser(login?: string) {
-  const pool = await ensureAdminUsersSchema();
+  const pool = getPool();
 
   if (!pool) {
     return null;
@@ -209,7 +142,7 @@ async function readActiveStoredAdminUser(login?: string) {
 }
 
 async function readActiveStoredAdminUserById(userId: string, accountId: string) {
-  const pool = await ensureAdminUsersSchema();
+  const pool = getPool();
 
   if (!pool) {
     return null;
@@ -248,7 +181,7 @@ async function resolveAdminCredentials(login?: string): Promise<ResolvedCredenti
   try {
     storedUser = await readActiveStoredAdminUser(login);
   } catch (error) {
-    console.error("PostgreSQL admin user lookup failed", error);
+    logger.error("PostgreSQL admin user lookup failed", error, { login: login ?? null });
   }
 
   if (storedUser) {
@@ -348,11 +281,7 @@ export async function validateAdminCredentials(login: string, password: string) 
 }
 
 export async function createAccountWithOwner(input: CreateAccountInput): Promise<{ account: Account; user: AdminUser }> {
-  const pool = await ensureAdminUsersSchema();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
+  const pool = requirePool();
 
   const existingLogin = await pool.query<{ id: string }>(
     `
@@ -434,13 +363,13 @@ export async function createAccountWithOwner(input: CreateAccountInput): Promise
         account.id
       );
     } catch (error) {
-      console.error("PostgreSQL signup settings creation failed", error);
+      logger.error("PostgreSQL signup settings creation failed", error, { accountId: account.id });
     }
 
     try {
       await createDemoLinksForAccount(account.id);
     } catch (error) {
-      console.error("PostgreSQL signup demo links creation failed", error);
+      logger.error("PostgreSQL signup demo links creation failed", error, { accountId: account.id });
     }
 
     return {
@@ -489,11 +418,7 @@ export async function updateAdminPassword(
     throw new Error("A senha atual nao confere.");
   }
 
-  const pool = await ensureAdminUsersSchema();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
+  const pool = requirePool();
 
   const passwordHash = hashPassword(nextPassword);
 
@@ -534,7 +459,7 @@ export async function updateAdminPassword(
 }
 
 export async function listAdminUsers(accountId = DEFAULT_ACCOUNT_ID): Promise<AdminUser[]> {
-  const pool = await ensureAdminUsersSchema();
+  const pool = getPool();
 
   if (!pool) {
     return [];
@@ -569,11 +494,7 @@ export async function createAdminInvite(
   accountId = DEFAULT_ACCOUNT_ID,
   requestOrigin?: string
 ): Promise<AdminInviteResult> {
-  const pool = await ensureAdminUsersSchema();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
+  const pool = requirePool();
 
   const token = randomBytes(32).toString("base64url");
   const inviteTokenHash = hashInviteToken(token);
@@ -673,11 +594,7 @@ export async function createAdminInvite(
 }
 
 export async function acceptAdminInvite(token: string, password: string) {
-  const pool = await ensureAdminUsersSchema();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
+  const pool = requirePool();
 
   const inviteTokenHash = hashInviteToken(token);
   const passwordHash = hashPassword(password);
@@ -717,11 +634,7 @@ export async function acceptAdminInvite(token: string, password: string) {
 }
 
 export async function updateAdminUserStatus(id: string, status: "active" | "inactive", accountId = DEFAULT_ACCOUNT_ID) {
-  const pool = await ensureAdminUsersSchema();
-
-  if (!pool) {
-    throw new Error(getDatabaseConfigMessage());
-  }
+  const pool = requirePool();
 
   const { rows } = await pool.query<StoredAdminUser>(
     `

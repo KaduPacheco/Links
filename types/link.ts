@@ -1,12 +1,37 @@
-export const categories = [
-  "Comercial",
-  "Conteúdo",
-  "Suporte",
-  "Materiais",
-  "Redes sociais"
-] as const;
+export const categoryLabels = {
+  comercial: "Comercial",
+  conteudo: "Conteudo",
+  suporte: "Suporte",
+  materiais: "Materiais",
+  "redes-sociais": "Redes sociais"
+} as const;
 
-export type LinkCategory = (typeof categories)[number];
+export type LinkCategory = keyof typeof categoryLabels;
+
+export const categories = Object.keys(categoryLabels) as LinkCategory[];
+
+const legacyCategoryMap: Record<string, LinkCategory> = {
+  comercial: "comercial",
+  conteudo: "conteudo",
+  "conteúdo": "conteudo",
+  "conteãºdo": "conteudo",
+  suporte: "suporte",
+  materiais: "materiais",
+  "redes sociais": "redes-sociais",
+  "redes-sociais": "redes-sociais"
+};
+
+export function normalizeLinkCategory(value: string | null | undefined): LinkCategory {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+  return legacyCategoryMap[normalized] ?? "comercial";
+}
+
+export function getCategoryLabel(category: string) {
+  return categoryLabels[normalizeLinkCategory(category)];
+}
 
 export type LinkItem = {
   id: string;

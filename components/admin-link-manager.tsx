@@ -13,14 +13,14 @@ import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime, isWhatsAppLink } from "@/lib/utils";
-import { categories, type LinkPayload, type LinkWithAnalytics } from "@/types/link";
+import { categories, getCategoryLabel, type LinkPayload, type LinkWithAnalytics } from "@/types/link";
 
 const emptyForm: LinkPayload = {
   title: "",
   url: "",
   description: "",
   icon: "ExternalLink",
-  category: "Comercial",
+  category: "comercial",
   lead_message: "",
   is_active: true,
   display_order: 1
@@ -237,7 +237,7 @@ export function AdminLinkManager() {
                 >
                   {categories.map((category) => (
                     <option key={category} value={category}>
-                      {category}
+                      {getCategoryLabel(category)}
                     </option>
                   ))}
                 </Select>
@@ -355,7 +355,7 @@ export function AdminLinkManager() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-black text-slate-950 dark:text-slate-50">{item.title}</h3>
-                      <Badge>{item.category}</Badge>
+                      <Badge>{getCategoryLabel(item.category)}</Badge>
                       {!item.is_active && (
                         <Badge className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                           Inativo

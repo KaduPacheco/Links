@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { DEFAULT_ACCOUNT_ID, getDefaultAccount } from "@/lib/accounts";
 import { getLinksWithAnalytics } from "@/lib/links";
 import { getSiteSettingsForAccount } from "@/lib/site-settings";
+import { getCategoryLabel } from "@/types/link";
 
 function groupByCategory<T extends { category: string }>(items: T[]) {
   return items.reduce<Record<string, T[]>>((acc, item) => {
@@ -78,7 +79,7 @@ export default async function HomePage() {
               {Object.entries(groupedLinks).map(([category, categoryLinks]) => (
                 <div key={category} className="space-y-3">
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-700 dark:text-sky-300">
-                    {category}
+                    {getCategoryLabel(category)}
                   </p>
                   {categoryLinks.map((item) => (
                     <a

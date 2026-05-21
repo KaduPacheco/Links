@@ -60,3 +60,47 @@ export function getPool() {
 export function getDatabaseSource() {
   return resolveDatabaseConfig()?.source ?? null;
 }
+
+export function requirePool() {
+  const resolvedPool = getPool();
+
+  if (!resolvedPool) {
+    throw new Error(getDatabaseConfigMessage());
+  }
+
+  return resolvedPool;
+}
+
+export async function checkDatabaseHealth() {
+  const resolvedPool = getPool();
+
+  if (!resolvedPool) {
+    return {
+      configured: false,
+      ok: true,
+      latencyMs: null,
+      source: null
+    };
+  }
+
+  const startedAt = Date.now();
+
+  try {
+    await resolvedPool.query("select 1");
+
+    return {
+      configured: true,
+      ok: true,
+      latencyMs: Date.now() - startedAt,
+      source: getDatabaseSource()
+    };
+  } catch (error) {
+    return {
+      configured: true,
+      ok: false,
+      latencyMs: Date.now() - startedAt,
+      source: getDatabaseSource(),
+      error: error instanceof Error ? error.message : "Unknown database error"
+    };
+  }
+}

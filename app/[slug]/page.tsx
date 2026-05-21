@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { getAccountBySlug } from "@/lib/accounts";
 import { getLinksWithAnalytics } from "@/lib/links";
 import { getSiteSettingsForAccount } from "@/lib/site-settings";
+import { getCategoryLabel } from "@/types/link";
 
 type PublicAccountPageProps = {
   params: {
@@ -90,7 +91,7 @@ export default async function PublicAccountPage({ params }: PublicAccountPagePro
               {Object.entries(groupedLinks).map(([category, categoryLinks]) => (
                 <div key={category} className="space-y-3">
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-700 dark:text-sky-300">
-                    {category}
+                    {getCategoryLabel(category)}
                   </p>
                   {categoryLinks.map((item) => (
                     <a

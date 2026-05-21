@@ -33,6 +33,10 @@ export async function GET(request: Request) {
   }
 
   const account = accountSlug ? await getAccountBySlug(accountSlug) : null;
+  if (accountSlug && !account) {
+    return NextResponse.redirect(origin);
+  }
+
   const accountId = account?.id ?? DEFAULT_ACCOUNT_ID;
   const links = await getLinksWithAnalytics(true, accountId);
   const link = links.find((item) => item.id === linkId && item.is_active);

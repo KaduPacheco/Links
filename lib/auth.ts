@@ -12,6 +12,7 @@ export type AdminSessionPayload = {
   account_id: string;
   login: string;
   role: string;
+  iat: number;
   exp: number;
 };
 
@@ -19,7 +20,7 @@ function getSessionSecret() {
   return process.env.AUTH_SESSION_SECRET?.trim() || process.env.SESSION_SECRET?.trim() || null;
 }
 
-function getSessionTtlSeconds() {
+export function getAdminSessionTtlSeconds() {
   const rawValue = process.env.AUTH_SESSION_TTL_HOURS?.trim();
 
   if (!rawValue) {
@@ -117,12 +118,13 @@ export async function verifySessionToken(token: string | null) {
 
 export async function createSessionToken(login: string, userId = "admin", role = "owner", accountId = "00000000-0000-0000-0000-000000000001") {
   const secret = getSessionSecret();
-  const sessionTtlSeconds = getSessionTtlSeconds();
+  const sessionTtlSeconds = getAdminSessionTtlSeconds();
 
   if (!login || !secret) {
     throw new Error("Auth admin nao configurada.");
   }
 
+  const issuedAt = Math.floor(Date.now() / 1000);
   const encodedHeader = encodeJson({ alg: "HS256", typ: "JWT" });
   const encodedPayload = encodeJson({
     sub: "admin",
@@ -130,7 +132,8 @@ export async function createSessionToken(login: string, userId = "admin", role =
     account_id: accountId,
     login,
     role,
-    exp: Math.floor(Date.now() / 1000) + sessionTtlSeconds
+    iat: issuedAt,
+    exp: issuedAt + sessionTtlSeconds
   } satisfies AdminSessionPayload);
   const unsigned = `${encodedHeader}.${encodedPayload}`;
   const signature = await createSignature(unsigned, secret);
@@ -139,11 +142,14 @@ export async function createSessionToken(login: string, userId = "admin", role =
 }
 
 export function getAdminCookieOptions() {
+  const maxAge = getAdminSessionTtlSeconds();
+
   return {
     httpOnly: true,
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
-    path: "/"
+    path: "/",
+    maxAge
   };
 }
 

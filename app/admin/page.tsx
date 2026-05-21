@@ -8,6 +8,7 @@ import { AdminWorkspace } from "@/components/admin-workspace";
 import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
 import { getAccountById } from "@/lib/accounts";
+import { listAdminAuditEvents } from "@/lib/admin-audit";
 import { getAdminIdleTimeoutMinutes } from "@/lib/auth";
 import { getAdminAccountInfo, listAdminUsers } from "@/lib/admin-account";
 import { readAdminSession } from "@/lib/admin-session";
@@ -28,11 +29,12 @@ export default async function AdminPage() {
   const currentRole = normalizeRole(session?.role);
   const accountId = session.account_id;
   const idleTimeoutMinutes = getAdminIdleTimeoutMinutes();
-  const [settings, account, users, currentAccount] = await Promise.all([
+  const [settings, account, users, currentAccount, auditPage] = await Promise.all([
     getSiteSettingsForAccount(accountId),
     getAdminAccountInfo(session?.user_id, accountId),
     listAdminUsers(accountId),
-    getAccountById(accountId)
+    getAccountById(accountId),
+    currentRole === "editor" ? Promise.resolve({ data: [], nextCursor: null }) : listAdminAuditEvents(accountId, 25)
   ]);
 
   return (
@@ -79,6 +81,7 @@ export default async function AdminPage() {
           initialSettings={settings}
           initialAccount={account}
           initialUsers={users}
+          initialAuditPage={auditPage}
           currentRole={currentRole}
         />
       </div>

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Link2, Settings2, UsersRound } from "lucide-react";
+import { Activity, Link2, Settings2, UsersRound } from "lucide-react";
+import { AdminAuditLog } from "@/components/admin-audit-log";
 import { AdminLinkManager } from "@/components/admin-link-manager";
 import { AdminSettingsManager } from "@/components/admin-settings-manager";
 import { AdminUserManager } from "@/components/admin-user-manager";
 import { Button } from "@/components/ui/button";
+import { type AdminAuditPage } from "@/types/admin-audit";
 import { type AdminRole, type AdminUser } from "@/types/admin-user";
 import { type SiteSettings } from "@/types/site-settings";
 
@@ -16,11 +18,13 @@ type AdminWorkspaceProps = {
     credentialSource: "database" | "environment" | null;
   };
   initialUsers: AdminUser[];
+  initialAuditPage: AdminAuditPage;
   currentRole: AdminRole;
 };
 
-export function AdminWorkspace({ initialSettings, initialAccount, initialUsers, currentRole }: AdminWorkspaceProps) {
-  const [tab, setTab] = useState<"links" | "users" | "settings">("links");
+export function AdminWorkspace({ initialSettings, initialAccount, initialUsers, initialAuditPage, currentRole }: AdminWorkspaceProps) {
+  const [tab, setTab] = useState<"links" | "users" | "settings" | "audit">("links");
+  const canViewAudit = currentRole !== "editor";
 
   return (
     <section className="space-y-6">
@@ -41,6 +45,12 @@ export function AdminWorkspace({ initialSettings, initialAccount, initialUsers, 
           <UsersRound className="h-4 w-4" />
           Usuarios
         </Button>
+        {canViewAudit && (
+          <Button type="button" variant={tab === "audit" ? "default" : "secondary"} onClick={() => setTab("audit")}>
+            <Activity className="h-4 w-4" />
+            Auditoria
+          </Button>
+        )}
       </div>
 
       {tab === "links" && (
@@ -50,6 +60,7 @@ export function AdminWorkspace({ initialSettings, initialAccount, initialUsers, 
         <AdminSettingsManager initialSettings={initialSettings} initialAccount={initialAccount} />
       )}
       {tab === "users" && <AdminUserManager initialUsers={initialUsers} currentRole={currentRole} />}
+      {tab === "audit" && canViewAudit && <AdminAuditLog initialPage={initialAuditPage} />}
     </section>
   );
 }

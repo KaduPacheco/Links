@@ -12,6 +12,7 @@ export type AdminSessionPayload = {
   account_id: string;
   login: string;
   role: string;
+  session_id?: string;
   iat: number;
   exp: number;
 };
@@ -116,7 +117,13 @@ export async function verifySessionToken(token: string | null) {
   }
 }
 
-export async function createSessionToken(login: string, userId = "admin", role = "owner", accountId = "00000000-0000-0000-0000-000000000001") {
+export async function createSessionToken(
+  login: string,
+  userId = "admin",
+  role = "owner",
+  accountId = "00000000-0000-0000-0000-000000000001",
+  sessionId?: string
+) {
   const secret = getSessionSecret();
   const sessionTtlSeconds = getAdminSessionTtlSeconds();
 
@@ -132,6 +139,7 @@ export async function createSessionToken(login: string, userId = "admin", role =
     account_id: accountId,
     login,
     role,
+    session_id: sessionId,
     iat: issuedAt,
     exp: issuedAt + sessionTtlSeconds
   } satisfies AdminSessionPayload);

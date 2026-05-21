@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { recordAdminAuditEvent } from "@/lib/admin-audit";
 import { acceptAccountOwnerInvite } from "@/lib/admin-account";
-import { ADMIN_SESSION_COOKIE, createSessionToken, getAdminCookieOptions } from "@/lib/auth";
+import { ADMIN_SESSION_COOKIE, getAdminCookieOptions } from "@/lib/auth";
+import { createAdminSession } from "@/lib/admin-session";
 import { getClientIp, getUserAgent, hashRateLimitValue } from "@/lib/request-context";
 import { consumeRateLimit, isRateLimitExceededError } from "@/lib/rate-limit";
 import { ACCOUNT_OWNER_INVITE_ACCEPT_IP_RATE_LIMIT } from "@/lib/security-policies";
@@ -15,7 +16,12 @@ export async function POST(request: Request) {
     await consumeRateLimit(ACCOUNT_OWNER_INVITE_ACCEPT_IP_RATE_LIMIT, clientIp);
     const payload = parseInviteAcceptancePayload(await request.json());
     const result = await acceptAccountOwnerInvite(payload.token, payload.password);
-    const token = await createSessionToken(result.user.login, result.user.id, result.user.role, result.user.account_id);
+    const { token } = await createAdminSession({
+      login: result.user.login,
+      userId: result.user.id,
+      role: result.user.role,
+      accountId: result.user.account_id
+    });
 
     const response = NextResponse.json({
       ok: true,

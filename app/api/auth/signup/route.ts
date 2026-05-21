@@ -5,7 +5,8 @@ import {
   getPublicAccountSignupDisabledMessage,
   isPublicAccountSignupEnabled
 } from "@/lib/admin-account";
-import { ADMIN_SESSION_COOKIE, createSessionToken, getAdminCookieOptions } from "@/lib/auth";
+import { ADMIN_SESSION_COOKIE, getAdminCookieOptions } from "@/lib/auth";
+import { createAdminSession } from "@/lib/admin-session";
 import { getClientIp, getUserAgent } from "@/lib/request-context";
 import { consumeRateLimit, isRateLimitExceededError } from "@/lib/rate-limit";
 import { ACCOUNT_SIGNUP_IP_RATE_LIMIT } from "@/lib/security-policies";
@@ -37,7 +38,12 @@ export async function POST(request: Request) {
   try {
     const payload = parseAccountSignupPayload(await request.json());
     const { account, user } = await createAccountWithOwner(payload);
-    const token = await createSessionToken(user.login, user.id, user.role, user.account_id);
+    const { token } = await createAdminSession({
+      login: user.login,
+      userId: user.id,
+      role: user.role,
+      accountId: user.account_id
+    });
     const response = NextResponse.json({
       ok: true,
       account,

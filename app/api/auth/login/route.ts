@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { recordAdminAuditEvent } from "@/lib/admin-audit";
-import { ADMIN_SESSION_COOKIE, createSessionToken, getAdminCookieOptions, sanitizeNextPath } from "@/lib/auth";
+import { ADMIN_SESSION_COOKIE, getAdminCookieOptions, sanitizeNextPath } from "@/lib/auth";
 import { getAdminAuthConfigError, isAdminAuthConfigured, validateAdminCredentials } from "@/lib/admin-account";
+import { createAdminSession } from "@/lib/admin-session";
 import { getClientIp, getUserAgent } from "@/lib/request-context";
 import { consumeRateLimit, isRateLimitExceededError, resetRateLimit } from "@/lib/rate-limit";
 import { ADMIN_LOGIN_IP_RATE_LIMIT, ADMIN_LOGIN_LOGIN_RATE_LIMIT } from "@/lib/security-policies";
@@ -69,12 +70,12 @@ export async function POST(request: Request) {
   await resetRateLimit(ADMIN_LOGIN_IP_RATE_LIMIT.action, clientIp);
   await resetRateLimit(ADMIN_LOGIN_LOGIN_RATE_LIMIT.action, credentials.login);
 
-  const token = await createSessionToken(
-    credentials.login,
-    credentials.userId ?? "admin",
-    credentials.role ?? "owner",
-    credentials.accountId ?? undefined
-  );
+  const { token } = await createAdminSession({
+    login: credentials.login,
+    userId: credentials.userId ?? "admin",
+    role: credentials.role ?? "owner",
+    accountId: credentials.accountId ?? "00000000-0000-0000-0000-000000000001"
+  });
   const next = sanitizeNextPath(body.next ?? null);
   const response = NextResponse.json({ ok: true, next });
   response.cookies.set(ADMIN_SESSION_COOKIE, token, getAdminCookieOptions());

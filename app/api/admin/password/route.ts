@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { recordAdminAuditEvent } from "@/lib/admin-audit";
-import { isAdminSessionRequiredError, requireAdminSession } from "@/lib/admin-session";
+import { ADMIN_SESSION_COOKIE, getAdminCookieOptions } from "@/lib/auth";
+import { isAdminSessionRequiredError, requireAdminSession, revokeAdminSessionsForUser } from "@/lib/admin-session";
 import { getClientIp, getUserAgent } from "@/lib/request-context";
 import { consumeRateLimit, isRateLimitExceededError, resetRateLimit } from "@/lib/rate-limit";
 import { ADMIN_PASSWORD_IP_RATE_LIMIT, ADMIN_PASSWORD_USER_RATE_LIMIT } from "@/lib/security-policies";
@@ -21,6 +22,18 @@ export async function POST(request: Request) {
 
     await resetRateLimit(ADMIN_PASSWORD_IP_RATE_LIMIT.action, clientIp);
     await resetRateLimit(ADMIN_PASSWORD_USER_RATE_LIMIT.action, session.user_id);
+    await revokeAdminSessionsForUser(session.user_id, session.account_id);
+
+    const response = NextResponse.json({
+      ok: true,
+      account,
+      next: "/admin/login?next=/admin",
+      requiresReauth: true
+    });
+    response.cookies.set(ADMIN_SESSION_COOKIE, "", {
+      ...getAdminCookieOptions(),
+      maxAge: 0
+    });
 
     await recordAdminAuditEvent({
       action: "admin.password.updated",
@@ -34,7 +47,7 @@ export async function POST(request: Request) {
       userAgent
     });
 
-    return NextResponse.json({ ok: true, account });
+    return response;
   } catch (error) {
     if (isRateLimitExceededError(error)) {
       const response = NextResponse.json({ error: error.message }, { status: 429 });

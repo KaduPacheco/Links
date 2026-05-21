@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { recordAdminAuditEvent } from "@/lib/admin-audit";
-import { updateAdminUserStatus } from "@/lib/admin-account";
-import { isAdminSessionRequiredError, requireAdminSession } from "@/lib/admin-session";
+import { countActiveOwners, getAdminUserById, updateAdminUserStatus } from "@/lib/admin-account";
+import { isAdminSessionRequiredError, requireAdminSession, revokeAdminSessionsForUser } from "@/lib/admin-session";
 import { getClientIp, getUserAgent } from "@/lib/request-context";
 import { consumeRateLimit, isRateLimitExceededError } from "@/lib/rate-limit";
 import { ADMIN_USER_STATUS_ACTOR_RATE_LIMIT } from "@/lib/security-policies";
@@ -16,10 +16,38 @@ type RouteContext = {
 export async function PUT(request: Request, { params }: RouteContext) {
   try {
     const session = await requireAdminSession();
+
+    if (session.role === "editor") {
+      return NextResponse.json({ error: "Editores nao podem alterar o status de usuarios." }, { status: 403 });
+    }
+
     await consumeRateLimit(ADMIN_USER_STATUS_ACTOR_RATE_LIMIT, session.user_id);
 
     const payload = parseAdminUserStatusPayload(await request.json());
+    const targetUser = await getAdminUserById(params.id, session.account_id);
+
+    if (!targetUser) {
+      return NextResponse.json({ error: "Usuario nao encontrado." }, { status: 404 });
+    }
+
+    if (payload.status === "inactive" && targetUser.id === session.user_id) {
+      return NextResponse.json({ error: "Nao e permitido inativar a propria sessao por esta rota." }, { status: 400 });
+    }
+
+    if (targetUser.role === "owner" && session.role !== "owner") {
+      return NextResponse.json({ error: "Apenas o dono pode alterar o status de outro dono." }, { status: 403 });
+    }
+
+    if (targetUser.role === "owner" && payload.status === "inactive") {
+      const activeOwners = await countActiveOwners(session.account_id);
+
+      if (targetUser.status === "active" && activeOwners <= 1) {
+        return NextResponse.json({ error: "A conta precisa manter pelo menos um dono ativo." }, { status: 400 });
+      }
+    }
+
     const data = await updateAdminUserStatus(params.id, payload.status, session.account_id);
+    await revokeAdminSessionsForUser(data.id, session.account_id);
 
     await recordAdminAuditEvent({
       action: "admin.user.status_updated",

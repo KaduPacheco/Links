@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { recordAdminAuditEvent } from "@/lib/admin-audit";
-import { readAdminSession } from "@/lib/admin-session";
+import { readAdminSession, revokeAdminSession } from "@/lib/admin-session";
 import { ADMIN_SESSION_COOKIE, getAdminCookieOptions } from "@/lib/auth";
 import { getClientIp, getUserAgent } from "@/lib/request-context";
 
@@ -13,6 +13,10 @@ export async function POST(request: Request) {
   });
 
   if (session) {
+    if (session.session_id) {
+      await revokeAdminSession(session.session_id);
+    }
+
     await recordAdminAuditEvent({
       action: "auth.logout",
       accountId: session.account_id,

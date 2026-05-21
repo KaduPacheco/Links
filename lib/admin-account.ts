@@ -490,8 +490,13 @@ export async function updateAdminPassword(
     throw new Error("A senha atual nao confere.");
   }
 
-  const pool = requirePool();
+  if (credentials.source !== "database") {
+    throw new Error(
+      "Nao e permitido alterar a senha de uma credencial baseada em variaveis de ambiente pelo painel. Atualize a variavel segura do ambiente ou migre para um usuario do banco."
+    );
+  }
 
+  const pool = requirePool();
   const passwordHash = hashPassword(nextPassword);
 
   if (credentials.source === "database") {
@@ -502,25 +507,6 @@ export async function updateAdminPassword(
         where id::text = $1
       `,
       [credentials.id, passwordHash]
-    );
-  } else {
-    await pool.query(
-      `
-        insert into admin_users (id, account_id, name, login, password_hash, role, status, accepted_at, updated_at)
-        values (1, $1, $2, $3, $4, 'owner', 'active', now(), now())
-        on conflict (id)
-        do update
-        set
-          account_id = excluded.account_id,
-          name = excluded.name,
-          login = excluded.login,
-          password_hash = excluded.password_hash,
-          role = excluded.role,
-          status = excluded.status,
-          accepted_at = now(),
-          updated_at = now()
-      `,
-      [credentials.accountId, credentials.name, credentials.login, passwordHash]
     );
   }
 
@@ -559,6 +545,54 @@ export async function listAdminUsers(accountId = DEFAULT_ACCOUNT_ID): Promise<Ad
   );
 
   return rows.map(mapAdminUser);
+}
+
+export async function getAdminUserById(id: string, accountId = DEFAULT_ACCOUNT_ID): Promise<AdminUser | null> {
+  const pool = getPool();
+
+  if (!pool) {
+    return null;
+  }
+
+  const { rows } = await pool.query<StoredAdminUser>(
+    `
+      select
+        id::text,
+        account_id::text,
+        name,
+        login,
+        password_hash,
+        role,
+        status,
+        created_at::text,
+        updated_at::text,
+        invited_at::text,
+        accepted_at::text
+      from admin_users
+      where id::text = $1
+        and account_id = $2
+      limit 1
+    `,
+    [id, accountId]
+  );
+
+  return rows[0] ? mapAdminUser(rows[0]) : null;
+}
+
+export async function countActiveOwners(accountId = DEFAULT_ACCOUNT_ID) {
+  const pool = requirePool();
+  const { rows } = await pool.query<{ count: string }>(
+    `
+      select count(*)::text
+      from admin_users
+      where account_id = $1
+        and role = 'owner'
+        and status = 'active'
+    `,
+    [accountId]
+  );
+
+  return Number(rows[0]?.count ?? 0);
 }
 
 export async function createAdminInvite(

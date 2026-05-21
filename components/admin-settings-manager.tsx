@@ -96,6 +96,8 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
       const payload = await readJsonOrThrow<{
         error?: string;
         account?: { login: string | null; credentialSource: "database" | "environment" | null };
+        next?: string;
+        requiresReauth?: boolean;
       }>(response);
 
       if (!response.ok) {
@@ -108,6 +110,15 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
       }
 
       setPasswordForm(emptyPasswordForm);
+
+      if (payload.requiresReauth) {
+        setPasswordMessage("Senha atualizada. Entre novamente para continuar.");
+        window.setTimeout(() => {
+          window.location.assign(payload.next ?? "/admin/login?next=/admin");
+        }, 800);
+        return;
+      }
+
       setPasswordMessage("Senha atualizada com sucesso.");
     });
   }
@@ -340,7 +351,8 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
               </p>
             </div>
             <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-              Ao salvar uma nova senha, o painel passa a usar o banco de dados como fonte principal de autenticacao.
+              Contas baseadas no banco podem trocar a senha por aqui. Credenciais vindas de variaveis de ambiente devem
+              ser rotacionadas fora do painel.
             </p>
           </CardContent>
         </Card>

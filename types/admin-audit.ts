@@ -25,9 +25,11 @@ export type AdminAuditAction =
   | "auth.logout"
   | "auth.signup.succeeded"
   | "auth.invite.accepted"
+  | "auth.account_invite.accepted"
   | "admin.password.updated"
   | "admin.settings.updated"
   | "admin.user.invited"
+  | "admin.account.invited"
   | "admin.user.status_updated"
   | "admin.link.created"
   | "admin.link.updated"
@@ -50,9 +52,11 @@ export const adminAuditActionOptions: Array<{ value: AdminAuditAction | "all"; l
   { value: "auth.logout", label: "Logout" },
   { value: "auth.signup.succeeded", label: "Conta criada" },
   { value: "auth.invite.accepted", label: "Convite aceito" },
+  { value: "auth.account_invite.accepted", label: "Convite de empresa aceito" },
   { value: "admin.password.updated", label: "Senha atualizada" },
   { value: "admin.settings.updated", label: "Configuracoes salvas" },
   { value: "admin.user.invited", label: "Usuario convidado" },
+  { value: "admin.account.invited", label: "Empresa convidada" },
   { value: "admin.user.status_updated", label: "Status de usuario alterado" },
   { value: "admin.link.created", label: "Link criado" },
   { value: "admin.link.updated", label: "Link atualizado" },
@@ -81,7 +85,11 @@ export function getAdminAuditSeverity(action: string): AdminAuditSeverity {
     return "critical";
   }
 
-  if (action === "admin.user.status_updated" || action === "admin.password.updated" || action === "admin.link.deleted") {
+  if (
+    action === "admin.user.status_updated" ||
+    action === "admin.password.updated" ||
+    action === "admin.link.deleted"
+  ) {
     return "warning";
   }
 

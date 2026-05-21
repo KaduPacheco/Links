@@ -49,6 +49,20 @@ export const ADMIN_USER_INVITE_ACTOR_RATE_LIMIT: RateLimitPolicy = {
   blockSeconds: 5 * 60
 };
 
+export const ACCOUNT_OWNER_INVITE_ACTOR_RATE_LIMIT: RateLimitPolicy = {
+  action: "admin.account-invite.actor",
+  maxAttempts: 10,
+  windowSeconds: 10 * 60,
+  blockSeconds: 10 * 60
+};
+
+export const ACCOUNT_OWNER_INVITE_ACCEPT_IP_RATE_LIMIT: RateLimitPolicy = {
+  action: "auth.account-invite-accept.ip",
+  maxAttempts: 10,
+  windowSeconds: 15 * 60,
+  blockSeconds: 15 * 60
+};
+
 export const ADMIN_USER_STATUS_ACTOR_RATE_LIMIT: RateLimitPolicy = {
   action: "admin.user-status.actor",
   maxAttempts: 20,

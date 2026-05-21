@@ -53,6 +53,12 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ponto_eletronico_link
 AUTH_SESSION_SECRET=troque-por-um-segredo-longo-e-unico
 ```
 
+Para operar como SaaS com onboarding controlado, o cadastro publico de novas contas fica desligado por padrao. Se quiser reabrir esse fluxo, defina:
+
+```bash
+ALLOW_PUBLIC_SIGNUP=true
+```
+
 4. Crie o banco e aplique as migracoes:
 
 ```bash

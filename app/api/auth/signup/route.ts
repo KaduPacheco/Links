@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { recordAdminAuditEvent } from "@/lib/admin-audit";
-import { createAccountWithOwner } from "@/lib/admin-account";
+import {
+  createAccountWithOwner,
+  getPublicAccountSignupDisabledMessage,
+  isPublicAccountSignupEnabled
+} from "@/lib/admin-account";
 import { ADMIN_SESSION_COOKIE, createSessionToken, getAdminCookieOptions } from "@/lib/auth";
 import { getClientIp, getUserAgent } from "@/lib/request-context";
 import { consumeRateLimit, isRateLimitExceededError } from "@/lib/rate-limit";
@@ -8,6 +12,10 @@ import { ACCOUNT_SIGNUP_IP_RATE_LIMIT } from "@/lib/security-policies";
 import { parseAccountSignupPayload } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  if (!isPublicAccountSignupEnabled()) {
+    return NextResponse.json({ error: getPublicAccountSignupDisabledMessage() }, { status: 403 });
+  }
+
   const clientIp = getClientIp(request) ?? "unknown";
   const userAgent = getUserAgent(request);
 

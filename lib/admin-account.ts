@@ -5,6 +5,7 @@ import { createDemoLinksForAccount } from "@/lib/links";
 import { logger } from "@/lib/logger";
 import { updateSiteSettings } from "@/lib/site-settings";
 import type { AdminInviteResult, AdminRole, AdminUser } from "@/types/admin-user";
+import type { AccountOwnerInvite, AccountOwnerInviteResult } from "@/types/account-invite";
 import { defaultSiteSettings } from "@/types/site-settings";
 import type { Account } from "@/types/account";
 
@@ -20,6 +21,22 @@ type StoredAdminUser = {
   updated_at: string;
   invited_at: string | null;
   accepted_at: string | null;
+};
+
+type StoredAccountOwnerInvite = {
+  id: string;
+  inviter_account_id: string | null;
+  inviter_user_id: string | null;
+  company_name: string;
+  owner_name: string;
+  login: string;
+  status: "pending" | "accepted" | "revoked";
+  created_account_id: string | null;
+  created_user_id: string | null;
+  invited_at: string;
+  accepted_at: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type AdminAccountInfo = {
@@ -103,8 +120,150 @@ function buildInviteUrl(token: string, requestOrigin?: string) {
   return `${normalizedBase.replace(/\/$/, "")}/admin/convite/${token}`;
 }
 
+function buildAccountInviteUrl(token: string, requestOrigin?: string) {
+  const baseUrl =
+    requestOrigin?.trim() ||
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    process.env.VERCEL_URL?.trim() ||
+    "http://localhost:3000";
+  const normalizedBase = baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`;
+  return `${normalizedBase.replace(/\/$/, "")}/cadastro/convite/${token}`;
+}
+
 function isReservedAccountSlug(slug: string) {
   return reservedAccountSlugs.has(slug);
+}
+
+function readBooleanEnv(name: string) {
+  const value = process.env[name]?.trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes" || value === "on";
+}
+
+export function isPublicAccountSignupEnabled() {
+  return readBooleanEnv("ALLOW_PUBLIC_SIGNUP");
+}
+
+export function getPublicAccountSignupDisabledMessage() {
+  return "Novas contas sao liberadas somente por convite privado enviado pelo responsavel da operacao.";
+}
+
+function mapAccountOwnerInvite(row: StoredAccountOwnerInvite): AccountOwnerInvite {
+  return {
+    id: row.id,
+    inviter_account_id: row.inviter_account_id,
+    inviter_user_id: row.inviter_user_id,
+    company_name: row.company_name,
+    owner_name: row.owner_name,
+    login: row.login,
+    status: row.status,
+    created_account_id: row.created_account_id,
+    created_user_id: row.created_user_id,
+    invited_at: row.invited_at,
+    accepted_at: row.accepted_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at
+  };
+}
+
+async function ensureUniqueAccountSlug(pool: ReturnType<typeof requirePool>, companyName: string) {
+  const baseSlug = createAccountSlug(companyName);
+  let slug = isReservedAccountSlug(baseSlug) ? `${baseSlug}-links` : baseSlug;
+
+  for (let attempt = 1; attempt <= 50; attempt += 1) {
+    const { rows } = await pool.query<{ id: string }>("select id::text from accounts where slug = $1 limit 1", [slug]);
+
+    if (!rows[0] && !isReservedAccountSlug(slug)) {
+      return slug;
+    }
+
+    slug = `${baseSlug}-${attempt + 1}`;
+  }
+
+  throw new Error("Nao foi possivel gerar um slug unico para a conta.");
+}
+
+async function initializeProvisionedAccount(account: Account) {
+  try {
+    await updateSiteSettings(
+      {
+        ...defaultSiteSettings,
+        company_name: account.name,
+        brand_label: "Links oficiais",
+        company_logo_url: null,
+        hero_badge: "Canais oficiais da empresa",
+        hero_description: `Encontre os principais canais, materiais e contatos oficiais de ${account.name}.`,
+        links_heading: "Links oficiais",
+        links_description: "Acesse os principais canais oficiais desta empresa."
+      },
+      account.id
+    );
+  } catch (error) {
+    logger.error("PostgreSQL signup settings creation failed", error, { accountId: account.id });
+  }
+
+  try {
+    await createDemoLinksForAccount(account.id);
+  } catch (error) {
+    logger.error("PostgreSQL signup demo links creation failed", error, { accountId: account.id });
+  }
+}
+
+async function provisionAccountWithOwner(
+  pool: ReturnType<typeof requirePool>,
+  input: CreateAccountInput
+): Promise<{ account: Account; user: AdminUser }> {
+  const existingLogin = await pool.query<{ id: string }>(
+    `
+      select id::text
+      from admin_users
+      where lower(login) = lower($1)
+      limit 1
+    `,
+    [input.login]
+  );
+
+  if (existingLogin.rows[0]) {
+    throw new Error("Ja existe uma conta cadastrada com este e-mail.");
+  }
+
+  const slug = await ensureUniqueAccountSlug(pool, input.companyName);
+  const passwordHash = hashPassword(input.password);
+
+  const accountResult = await pool.query<Account>(
+    `
+      insert into accounts (name, slug)
+      values ($1, $2)
+      returning id::text, name, slug, created_at::text, updated_at::text
+    `,
+    [input.companyName, slug]
+  );
+
+  const account = accountResult.rows[0];
+
+  const userResult = await pool.query<StoredAdminUser>(
+    `
+      insert into admin_users (id, account_id, name, login, password_hash, role, status, accepted_at, updated_at)
+      values ((select coalesce(max(id), 0) + 1 from admin_users), $1, $2, $3, $4, 'owner', 'active', now(), now())
+      returning
+        id::text,
+        account_id::text,
+        name,
+        login,
+        password_hash,
+        role,
+        status,
+        created_at::text,
+        updated_at::text,
+        invited_at::text,
+        accepted_at::text
+    `,
+    [account.id, input.ownerName, input.login, passwordHash]
+  );
+
+  return {
+    account,
+    user: mapAdminUser(userResult.rows[0])
+  };
 }
 
 async function readActiveStoredAdminUser(login?: string) {
@@ -283,99 +442,12 @@ export async function validateAdminCredentials(login: string, password: string) 
 export async function createAccountWithOwner(input: CreateAccountInput): Promise<{ account: Account; user: AdminUser }> {
   const pool = requirePool();
 
-  const existingLogin = await pool.query<{ id: string }>(
-    `
-      select id::text
-      from admin_users
-      where lower(login) = lower($1)
-      limit 1
-    `,
-    [input.login]
-  );
-
-  if (existingLogin.rows[0]) {
-    throw new Error("Ja existe uma conta cadastrada com este e-mail.");
-  }
-
-  const baseSlug = createAccountSlug(input.companyName);
-  let slug = isReservedAccountSlug(baseSlug) ? `${baseSlug}-links` : baseSlug;
-
-  for (let attempt = 1; attempt <= 50; attempt += 1) {
-    const { rows } = await pool.query<{ id: string }>("select id::text from accounts where slug = $1 limit 1", [slug]);
-
-    if (!rows[0] && !isReservedAccountSlug(slug)) {
-      break;
-    }
-
-    slug = `${baseSlug}-${attempt + 1}`;
-  }
-
-  const passwordHash = hashPassword(input.password);
-
   try {
     await pool.query("begin");
-
-    const accountResult = await pool.query<Account>(
-      `
-        insert into accounts (name, slug)
-        values ($1, $2)
-        returning id::text, name, slug, created_at::text, updated_at::text
-      `,
-      [input.companyName, slug]
-    );
-
-    const account = accountResult.rows[0];
-
-    const userResult = await pool.query<StoredAdminUser>(
-      `
-        insert into admin_users (id, account_id, name, login, password_hash, role, status, accepted_at, updated_at)
-        values ((select coalesce(max(id), 0) + 1 from admin_users), $1, $2, $3, $4, 'owner', 'active', now(), now())
-        returning
-          id::text,
-          account_id::text,
-          name,
-          login,
-          password_hash,
-          role,
-          status,
-          created_at::text,
-          updated_at::text,
-          invited_at::text,
-          accepted_at::text
-      `,
-      [account.id, input.ownerName, input.login, passwordHash]
-    );
-
+    const result = await provisionAccountWithOwner(pool, input);
     await pool.query("commit");
-
-    try {
-      await updateSiteSettings(
-        {
-          ...defaultSiteSettings,
-          company_name: account.name,
-          brand_label: "Links oficiais",
-          company_logo_url: null,
-          hero_badge: "Canais oficiais da empresa",
-          hero_description: `Encontre os principais canais, materiais e contatos oficiais de ${account.name}.`,
-          links_heading: "Links oficiais",
-          links_description: "Acesse os principais canais oficiais desta empresa."
-        },
-        account.id
-      );
-    } catch (error) {
-      logger.error("PostgreSQL signup settings creation failed", error, { accountId: account.id });
-    }
-
-    try {
-      await createDemoLinksForAccount(account.id);
-    } catch (error) {
-      logger.error("PostgreSQL signup demo links creation failed", error, { accountId: account.id });
-    }
-
-    return {
-      account,
-      user: mapAdminUser(userResult.rows[0])
-    };
+    await initializeProvisionedAccount(result.account);
+    return result;
   } catch (error) {
     await pool.query("rollback");
     throw error;
@@ -593,6 +665,170 @@ export async function createAdminInvite(
   };
 }
 
+export async function createAccountOwnerInvite(
+  input: { companyName: string; ownerName: string; login: string },
+  inviterAccountId = DEFAULT_ACCOUNT_ID,
+  inviterUserId?: string,
+  requestOrigin?: string
+): Promise<AccountOwnerInviteResult> {
+  const pool = requirePool();
+  const token = randomBytes(32).toString("base64url");
+  const inviteTokenHash = hashInviteToken(token);
+
+  const [existingAdminUser, existingInvite] = await Promise.all([
+    pool.query<{ id: string }>(
+      `
+        select id::text
+        from admin_users
+        where lower(login) = lower($1)
+        limit 1
+      `,
+      [input.login]
+    ),
+    pool.query<StoredAccountOwnerInvite>(
+      `
+        select
+          id::text,
+          inviter_account_id::text,
+          inviter_user_id,
+          company_name,
+          owner_name,
+          login,
+          status,
+          created_account_id::text,
+          created_user_id,
+          invited_at::text,
+          accepted_at::text,
+          created_at::text,
+          updated_at::text
+        from account_owner_invites
+        where lower(login) = lower($1)
+          and status = 'pending'
+        order by created_at desc
+        limit 1
+      `,
+      [input.login]
+    )
+  ]);
+
+  if (existingAdminUser.rows[0]) {
+    throw new Error("Este e-mail ja esta em uso por uma conta existente.");
+  }
+
+  const { rows } = await pool.query<StoredAccountOwnerInvite>(
+    existingInvite.rows[0]
+      ? `
+          update account_owner_invites
+          set
+            inviter_account_id = $2,
+            inviter_user_id = $3,
+            company_name = $4,
+            owner_name = $5,
+            status = 'pending',
+            created_account_id = null,
+            created_user_id = null,
+            invite_token_hash = $6,
+            invited_at = now(),
+            accepted_at = null,
+            updated_at = now()
+          where id = $1
+          returning
+            id::text,
+            inviter_account_id::text,
+            inviter_user_id,
+            company_name,
+            owner_name,
+            login,
+            status,
+            created_account_id::text,
+            created_user_id,
+            invited_at::text,
+            accepted_at::text,
+            created_at::text,
+            updated_at::text
+        `
+      : `
+          insert into account_owner_invites (
+            inviter_account_id,
+            inviter_user_id,
+            company_name,
+            owner_name,
+            login,
+            invite_token_hash,
+            status,
+            invited_at,
+            updated_at
+          )
+          values ($1, $2, $3, $4, $5, $6, 'pending', now(), now())
+          returning
+            id::text,
+            inviter_account_id::text,
+            inviter_user_id,
+            company_name,
+            owner_name,
+            login,
+            status,
+            created_account_id::text,
+            created_user_id,
+            invited_at::text,
+            accepted_at::text,
+            created_at::text,
+            updated_at::text
+        `,
+    existingInvite.rows[0]
+      ? [
+          existingInvite.rows[0].id,
+          inviterAccountId,
+          inviterUserId ?? null,
+          input.companyName,
+          input.ownerName,
+          inviteTokenHash
+        ]
+      : [inviterAccountId, inviterUserId ?? null, input.companyName, input.ownerName, input.login, inviteTokenHash]
+  );
+
+  return {
+    invite: mapAccountOwnerInvite(rows[0]),
+    inviteUrl: buildAccountInviteUrl(token, requestOrigin)
+  };
+}
+
+export async function getPendingAccountOwnerInvite(token: string): Promise<AccountOwnerInvite | null> {
+  const pool = getPool();
+
+  if (!pool) {
+    return null;
+  }
+
+  const inviteTokenHash = hashInviteToken(token);
+
+  const { rows } = await pool.query<StoredAccountOwnerInvite>(
+    `
+      select
+        id::text,
+        inviter_account_id::text,
+        inviter_user_id,
+        company_name,
+        owner_name,
+        login,
+        status,
+        created_account_id::text,
+        created_user_id,
+        invited_at::text,
+        accepted_at::text,
+        created_at::text,
+        updated_at::text
+      from account_owner_invites
+      where invite_token_hash = $1
+        and status = 'pending'
+      limit 1
+    `,
+    [inviteTokenHash]
+  );
+
+  return rows[0] ? mapAccountOwnerInvite(rows[0]) : null;
+}
+
 export async function acceptAdminInvite(token: string, password: string) {
   const pool = requirePool();
 
@@ -631,6 +867,87 @@ export async function acceptAdminInvite(token: string, password: string) {
   }
 
   return mapAdminUser(rows[0]);
+}
+
+export async function acceptAccountOwnerInvite(token: string, password: string) {
+  const pool = requirePool();
+  const inviteTokenHash = hashInviteToken(token);
+
+  try {
+    await pool.query("begin");
+
+    const inviteResult = await pool.query<StoredAccountOwnerInvite>(
+      `
+        select
+          id::text,
+          inviter_account_id::text,
+          inviter_user_id,
+          company_name,
+          owner_name,
+          login,
+          status,
+          created_account_id::text,
+          created_user_id,
+          invited_at::text,
+          accepted_at::text,
+          created_at::text,
+          updated_at::text
+        from account_owner_invites
+        where invite_token_hash = $1
+          and status = 'pending'
+        limit 1
+        for update
+      `,
+      [inviteTokenHash]
+    );
+
+    const invite = inviteResult.rows[0];
+
+    if (!invite) {
+      throw new Error("Convite de empresa invalido ou ja utilizado.");
+    }
+
+    const result = await provisionAccountWithOwner(pool, {
+      companyName: invite.company_name,
+      ownerName: invite.owner_name,
+      login: invite.login,
+      password
+    });
+
+    await pool.query(
+      `
+        update account_owner_invites
+        set
+          status = 'accepted',
+          invite_token_hash = invite_token_hash,
+          created_account_id = $2,
+          created_user_id = $3,
+          accepted_at = now(),
+          updated_at = now()
+        where id = $1
+      `,
+      [invite.id, result.account.id, result.user.id]
+    );
+
+    await pool.query("commit");
+    await initializeProvisionedAccount(result.account);
+
+    return {
+      invite: mapAccountOwnerInvite({
+        ...invite,
+        status: "accepted",
+        created_account_id: result.account.id,
+        created_user_id: result.user.id,
+        accepted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }),
+      account: result.account,
+      user: result.user
+    };
+  } catch (error) {
+    await pool.query("rollback");
+    throw error;
+  }
 }
 
 export async function updateAdminUserStatus(id: string, status: "active" | "inactive", accountId = DEFAULT_ACCOUNT_ID) {

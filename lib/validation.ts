@@ -169,6 +169,35 @@ export function parseAdminInvitePayload(input: unknown) {
   };
 }
 
+export function parseAccountOwnerInvitePayload(input: unknown) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Payload invalido.");
+  }
+
+  const payload = input as Record<string, unknown>;
+  const companyName = String(payload.companyName ?? "").trim();
+  const ownerName = String(payload.ownerName ?? "").trim();
+  const login = String(payload.login ?? "").trim().toLowerCase();
+
+  if (companyName.length < 2) {
+    throw new Error("Informe o nome da empresa com pelo menos 2 caracteres.");
+  }
+
+  if (ownerName.length < 2) {
+    throw new Error("Informe o nome da pessoa responsavel com pelo menos 2 caracteres.");
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
+    throw new Error("Informe um e-mail valido para o convite.");
+  }
+
+  return {
+    companyName,
+    ownerName,
+    login
+  };
+}
+
 export function parseAccountSignupPayload(input: unknown) {
   if (!input || typeof input !== "object") {
     throw new Error("Payload invalido.");

@@ -128,7 +128,7 @@ export async function createSessionToken(
   const sessionTtlSeconds = getAdminSessionTtlSeconds();
 
   if (!login || !secret) {
-    throw new Error("Auth admin nao configurada.");
+    throw new Error("Autenticação administrativa não configurada.");
   }
 
   const issuedAt = Math.floor(Date.now() / 1000);

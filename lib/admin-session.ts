@@ -11,7 +11,7 @@ import { getPool } from "@/lib/db";
 
 export class AdminSessionRequiredError extends Error {
   constructor() {
-    super("Sessao administrativa invalida ou expirada.");
+    super("Sessão administrativa inválida ou expirada.");
     this.name = "AdminSessionRequiredError";
   }
 }

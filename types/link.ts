@@ -1,6 +1,6 @@
 export const categoryLabels = {
   comercial: "Comercial",
-  conteudo: "Conteudo",
+  conteudo: "Conteúdo",
   suporte: "Suporte",
   materiais: "Materiais",
   "redes-sociais": "Redes sociais"

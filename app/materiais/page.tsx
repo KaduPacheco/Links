@@ -13,7 +13,7 @@ export default async function MaterialsPage() {
         <FileText className="mx-auto mt-8 h-12 w-12 text-blue-600 dark:text-sky-300" />
         <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">Materiais ricos</h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          Pagina pronta para hospedar guias, checklists, videos explicativos, cases e conteudos de conversao.
+          Página pronta para hospedar guias, checklists, vídeos explicativos, cases e conteúdos de conversão.
         </p>
         <Link
           href="/"

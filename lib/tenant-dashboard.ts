@@ -40,8 +40,8 @@ function createAlerts(overview: TenantDashboardOverview): TenantDashboardAlert[]
   if (overview.criticalEventsLast24h > 0) {
     alerts.push({
       id: "critical-events",
-      title: "Eventos criticos recentes",
-      description: `${overview.criticalEventsLast24h} evento(s) critico(s) nas ultimas 24h. Revise falhas e bloqueios de login.`,
+      title: "Eventos críticos recentes",
+      description: `${overview.criticalEventsLast24h} evento(s) crítico(s) nas últimas 24h. Revise falhas e bloqueios de login.`,
       severity: "critical"
     });
   }
@@ -59,7 +59,7 @@ function createAlerts(overview: TenantDashboardOverview): TenantDashboardAlert[]
     alerts.push({
       id: "no-active-links",
       title: "Nenhum link ativo",
-      description: "A conta nao possui links ativos no momento.",
+      description: "A conta não possui links ativos no momento.",
       severity: "warning"
     });
   }
@@ -68,7 +68,7 @@ function createAlerts(overview: TenantDashboardOverview): TenantDashboardAlert[]
     alerts.push({
       id: "no-clicks",
       title: "Sem atividade de clique",
-      description: "Ainda nao houve cliques registrados nesta conta.",
+      description: "Ainda não houve cliques registrados nesta conta.",
       severity: "info"
     });
   }
@@ -77,7 +77,7 @@ function createAlerts(overview: TenantDashboardOverview): TenantDashboardAlert[]
     alerts.push({
       id: "healthy",
       title: "Conta operando normalmente",
-      description: "Nao ha sinais relevantes de risco ou friccao no momento.",
+      description: "Não há sinais relevantes de risco ou fricção no momento.",
       severity: "info"
     });
   }

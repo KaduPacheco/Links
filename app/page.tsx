@@ -40,9 +40,9 @@ export default async function HomePage() {
 
           <div className="grid gap-3 sm:grid-cols-3">
             {[
-              ["Implantacao rapida", Zap],
+              ["Implantação rápida", Zap],
               ["Dados protegidos", ShieldCheck],
-              ["Gestao em tempo real", BarChart3]
+              ["Gestão em tempo real", BarChart3]
             ].map(([label, Icon]) => (
               <div key={String(label)} className="glass-panel rounded-2xl p-4">
                 <Icon className="mb-3 h-5 w-5 text-blue-600 dark:text-sky-300" aria-hidden="true" />

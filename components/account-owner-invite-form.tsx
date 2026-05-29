@@ -45,7 +45,7 @@ export function AccountOwnerInviteForm({ token, companyName, ownerName, login }:
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setMessage(payload.error ?? "Nao foi possivel ativar a nova conta.");
+      setMessage(payload.error ?? "Não foi possível ativar a nova conta.");
       return;
     }
 
@@ -61,7 +61,7 @@ export function AccountOwnerInviteForm({ token, companyName, ownerName, login }:
           <Input id="invite-company" value={companyName} readOnly />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="invite-owner">Responsavel</Label>
+          <Label htmlFor="invite-owner">Responsável</Label>
           <Input id="invite-owner" value={ownerName} readOnly />
         </div>
       </div>

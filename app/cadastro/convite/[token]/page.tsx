@@ -28,7 +28,7 @@ export default async function AccountInvitePage({ params }: AccountInvitePagePro
             <CardDescription>
               {invite
                 ? "Defina a senha inicial para ativar sua empresa em uma conta separada."
-                : "Este convite nao esta mais disponivel. Solicite um novo link ao responsavel pelo onboarding."}
+                : "Este convite não está mais disponível. Solicite um novo link ao responsável pelo onboarding."}
             </CardDescription>
           </div>
         </CardHeader>
@@ -42,11 +42,11 @@ export default async function AccountInvitePage({ params }: AccountInvitePagePro
             />
           ) : (
             <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
-              Link invalido, expirado ou ja utilizado.
+              Link inválido, expirado ou já utilizado.
             </div>
           )}
           <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-            Ja possui acesso?{" "}
+            Já possui acesso?{" "}
             <Link href="/admin/login" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-sky-300">
               Entrar no painel
             </Link>

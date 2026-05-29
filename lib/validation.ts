@@ -20,7 +20,7 @@ export function isValidLinkUrl(url: string) {
 
 export function parseLinkPayload(input: unknown): LinkPayload {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Partial<LinkPayload>;
@@ -32,15 +32,15 @@ export function parseLinkPayload(input: unknown): LinkPayload {
   const normalizedCategory = normalizeLinkCategory(category);
 
   if (title.length < 2) {
-    throw new Error("Informe um titulo com pelo menos 2 caracteres.");
+    throw new Error("Informe um título com pelo menos 2 caracteres.");
   }
 
   if (!isValidLinkUrl(url)) {
-    throw new Error("Informe uma URL http(s) valida ou um caminho interno iniciado por /.");
+    throw new Error("Informe uma URL http(s) válida ou um caminho interno iniciado por /.");
   }
 
   if (!categories.includes(normalizedCategory)) {
-    throw new Error("Categoria invalida.");
+    throw new Error("Categoria inválida.");
   }
 
   if (!Number.isFinite(displayOrder) || displayOrder < 0) {
@@ -61,7 +61,7 @@ export function parseLinkPayload(input: unknown): LinkPayload {
 
 export function parseSiteSettingsPayload(input: unknown): SiteSettings {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Partial<SiteSettings>;
@@ -78,7 +78,7 @@ export function parseSiteSettingsPayload(input: unknown): SiteSettings {
   }
 
   if (brandLabel.length < 2) {
-    throw new Error("Informe o rotulo da marca com pelo menos 2 caracteres.");
+    throw new Error("Informe o rótulo da marca com pelo menos 2 caracteres.");
   }
 
   if (heroBadge.length < 4) {
@@ -86,19 +86,19 @@ export function parseSiteSettingsPayload(input: unknown): SiteSettings {
   }
 
   if (heroDescription.length < 8) {
-    throw new Error("Informe a descricao principal com pelo menos 8 caracteres.");
+    throw new Error("Informe a descrição principal com pelo menos 8 caracteres.");
   }
 
   if (linksHeading.length < 2) {
-    throw new Error("Informe o titulo da secao de links.");
+    throw new Error("Informe o título da seção de links.");
   }
 
   if (linksDescription.length < 8) {
-    throw new Error("Informe a descricao da secao de links com pelo menos 8 caracteres.");
+    throw new Error("Informe a descrição da seção de links com pelo menos 8 caracteres.");
   }
 
   if (companyLogoUrl && !isValidLinkUrl(companyLogoUrl)) {
-    throw new Error("Informe uma URL http(s) valida ou um caminho interno iniciado por / para a logo.");
+    throw new Error("Informe uma URL http(s) válida ou um caminho interno iniciado por / para a logo.");
   }
 
   return {
@@ -114,7 +114,7 @@ export function parseSiteSettingsPayload(input: unknown): SiteSettings {
 
 export function parsePasswordUpdatePayload(input: unknown) {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Record<string, unknown>;
@@ -131,7 +131,7 @@ export function parsePasswordUpdatePayload(input: unknown) {
   }
 
   if (nextPassword !== confirmPassword) {
-    throw new Error("A confirmacao da nova senha nao confere.");
+    throw new Error("A confirmação da nova senha não confere.");
   }
 
   return {
@@ -142,7 +142,7 @@ export function parsePasswordUpdatePayload(input: unknown) {
 
 export function parseAdminInvitePayload(input: unknown) {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Record<string, unknown>;
@@ -155,11 +155,11 @@ export function parseAdminInvitePayload(input: unknown) {
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
-    throw new Error("Informe um e-mail valido para o convite.");
+    throw new Error("Informe um e-mail válido para o convite.");
   }
 
   if (!adminRoles.includes(role as AdminRole)) {
-    throw new Error("Perfil de usuario invalido.");
+    throw new Error("Perfil de usuário inválido.");
   }
 
   return {
@@ -171,7 +171,7 @@ export function parseAdminInvitePayload(input: unknown) {
 
 export function parseAccountOwnerInvitePayload(input: unknown) {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Record<string, unknown>;
@@ -184,11 +184,11 @@ export function parseAccountOwnerInvitePayload(input: unknown) {
   }
 
   if (ownerName.length < 2) {
-    throw new Error("Informe o nome da pessoa responsavel com pelo menos 2 caracteres.");
+    throw new Error("Informe o nome da pessoa responsável com pelo menos 2 caracteres.");
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
-    throw new Error("Informe um e-mail valido para o convite.");
+    throw new Error("Informe um e-mail válido para o convite.");
   }
 
   return {
@@ -200,7 +200,7 @@ export function parseAccountOwnerInvitePayload(input: unknown) {
 
 export function parseAccountSignupPayload(input: unknown) {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Record<string, unknown>;
@@ -219,7 +219,7 @@ export function parseAccountSignupPayload(input: unknown) {
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
-    throw new Error("Informe um e-mail valido.");
+    throw new Error("Informe um e-mail válido.");
   }
 
   if (password.length < 8) {
@@ -227,7 +227,7 @@ export function parseAccountSignupPayload(input: unknown) {
   }
 
   if (password !== confirmPassword) {
-    throw new Error("A confirmacao da senha nao confere.");
+    throw new Error("A confirmação da senha não confere.");
   }
 
   return {
@@ -240,7 +240,7 @@ export function parseAccountSignupPayload(input: unknown) {
 
 export function parseInviteAcceptancePayload(input: unknown) {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Record<string, unknown>;
@@ -249,7 +249,7 @@ export function parseInviteAcceptancePayload(input: unknown) {
   const confirmPassword = String(payload.confirmPassword ?? "");
 
   if (token.length < 20) {
-    throw new Error("Convite invalido.");
+    throw new Error("Convite inválido.");
   }
 
   if (password.length < 8) {
@@ -257,7 +257,7 @@ export function parseInviteAcceptancePayload(input: unknown) {
   }
 
   if (password !== confirmPassword) {
-    throw new Error("A confirmacao da senha nao confere.");
+    throw new Error("A confirmação da senha não confere.");
   }
 
   return {
@@ -268,14 +268,14 @@ export function parseInviteAcceptancePayload(input: unknown) {
 
 export function parseAdminUserStatusPayload(input: unknown) {
   if (!input || typeof input !== "object") {
-    throw new Error("Payload invalido.");
+    throw new Error("Payload inválido.");
   }
 
   const payload = input as Record<string, unknown>;
   const status = String(payload.status ?? "").trim();
 
   if (!["active", "inactive"].includes(status)) {
-    throw new Error("Status de usuario invalido.");
+    throw new Error("Status de usuário inválido.");
   }
 
   return {

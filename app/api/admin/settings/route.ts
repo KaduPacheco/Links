@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({ data, account });
   } catch (error) {
     return NextResponse.json(
-      { error: isAdminSessionRequiredError(error) ? error.message : "Erro ao carregar configuracoes." },
+      { error: isAdminSessionRequiredError(error) ? error.message : "Erro ao carregar configurações." },
       { status: isAdminSessionRequiredError(error) ? 401 : 400 }
     );
   }
@@ -47,7 +47,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ data });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro ao salvar configuracoes." },
+      { error: error instanceof Error ? error.message : "Erro ao salvar configurações." },
       { status: isAdminSessionRequiredError(error) ? 401 : 400 }
     );
   }

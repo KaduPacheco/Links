@@ -1,6 +1,6 @@
-# Ponto Eletronico Links
+# Ponto Eletrônico Links
 
-Ferramenta full-stack de gestao de links para a marca **Ponto Eletronico**, inspirada em bio pages profissionais como Linktree, Shorby e Beacons.
+Ferramenta full-stack de gestão de links para a marca **Ponto Eletrônico**, inspirada em bio pages profissionais como Linktree, Shorby e Beacons.
 
 ## Stack
 
@@ -9,17 +9,17 @@ Ferramenta full-stack de gestao de links para a marca **Ponto Eletronico**, insp
 - Tailwind CSS
 - Componentes locais no estilo shadcn/ui
 - PostgreSQL para banco de dados
-- lucide-react para icones
+- lucide-react para ícones
 
 ## Rotas
 
-- `/`: pagina publica com links ativos agrupados por categoria.
+- `/`: página pública com links ativos agrupados por categoria.
 - `/admin`: painel para criar, editar, excluir, ativar/desativar e reordenar links.
 - `/admin/analytics`: ranking, total de cliques e ultimo clique por link.
 - `/api/links`: lista e cria links.
 - `/api/links/[id]`: atualiza e exclui links.
 - `/api/click?linkId=ID`: registra o clique e redireciona o visitante.
-- `/api/health`: health check da aplicacao e conectividade com o banco.
+- `/api/health`: health check da aplicação e conectividade com o banco.
 
 ## Como rodar localmente
 
@@ -29,7 +29,7 @@ Ferramenta full-stack de gestao de links para a marca **Ponto Eletronico**, insp
 npm install
 ```
 
-2. Copie as variaveis de ambiente:
+2. Copie as variáveis de ambiente:
 
 ```bash
 cp .env.example .env.local
@@ -37,7 +37,7 @@ cp .env.example .env.local
 
 3. Configure o PostgreSQL em `.env.local`.
 
-O app aceita qualquer uma destas variaveis:
+O app aceita qualquer uma destas variáveis:
 
 - `DATABASE_URL`
 - `POSTGRES_URL`
@@ -53,13 +53,13 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ponto_eletronico_link
 AUTH_SESSION_SECRET=troque-por-um-segredo-longo-e-unico
 ```
 
-Para operar como SaaS com onboarding controlado, o cadastro publico de novas contas fica desligado por padrao. Se quiser reabrir esse fluxo, defina:
+Para operar como SaaS com onboarding controlado, o cadastro público de novas contas fica desligado por padrão. Se quiser reabrir esse fluxo, defina:
 
 ```bash
 ALLOW_PUBLIC_SIGNUP=true
 ```
 
-4. Crie o banco e aplique as migracoes:
+4. Crie o banco e aplique as migrações:
 
 ```bash
 createdb ponto_eletronico_links
@@ -76,21 +76,21 @@ Abra `http://localhost:3000`.
 
 ## Mensagem automatica para leads
 
-Cada link pode ter uma `Mensagem automatica` configurada no painel admin.
+Cada link pode ter uma `Mensagem automática` configurada no painel admin.
 
 - Em links do WhatsApp, o sistema injeta essa mensagem no parametro `text`.
-- Se a mensagem estiver vazia, o sistema gera uma mensagem padrao com a origem do clique.
-- Voce pode usar `{{origem}}` para incluir automaticamente o titulo do botao clicado.
+- Se a mensagem estiver vazia, o sistema gera uma mensagem padrão com a origem do clique.
+- Você pode usar `{{origem}}` para incluir automaticamente o título do botão clicado.
 
 Exemplo:
 
 ```txt
-Ola! Vim pelo link "{{origem}}" e quero falar com voces.
+Olá! Vim pelo link "{{origem}}" e quero falar com vocês.
 ```
 
 ## Operacao
 
-- As migracoes versionadas ficam em `database/migrations`.
-- A aplicacao nao altera mais o schema em runtime; em producao, execute `npm run db:migrate` durante o deploy.
-- O workflow de CI cria um Postgres efemero, aplica migracoes, roda `lint`, `typecheck` e `build`.
-- Se nenhuma variavel de conexao estiver definida, a aplicacao entra em modo demonstracao e exibe os links seed.
+- As migrações versionadas ficam em `database/migrations`.
+- A aplicação não altera mais o schema em runtime; em produção, execute `npm run db:migrate` durante o deploy.
+- O workflow de CI cria um Postgres efêmero, aplica migrações, roda `lint`, `typecheck` e `build`.
+- Se nenhuma variável de conexão estiver definida, a aplicação entra em modo demonstração e exibe os links seed.

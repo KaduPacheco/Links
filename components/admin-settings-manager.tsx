@@ -38,7 +38,7 @@ function redirectToLogin() {
 async function readJsonOrThrow<T>(response: Response) {
   if (response.status === 401) {
     redirectToLogin();
-    throw new Error("Sessao expirada.");
+    throw new Error("Sessão expirada.");
   }
 
   return (await response.json()) as T;
@@ -72,12 +72,12 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
       const payload = await readJsonOrThrow<{ error?: string; data?: SiteSettings }>(response);
 
       if (!response.ok || !payload.data) {
-        setSettingsMessage(payload.error ?? "Nao foi possivel salvar as configuracoes.");
+        setSettingsMessage(payload.error ?? "Não foi possível salvar as configurações.");
         return;
       }
 
       setSettings(payload.data);
-      setSettingsMessage("Configuracoes salvas com sucesso.");
+      setSettingsMessage("Configurações salvas com sucesso.");
       router.refresh();
     });
   }
@@ -101,7 +101,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
       }>(response);
 
       if (!response.ok) {
-        setPasswordMessage(payload.error ?? "Nao foi possivel atualizar a senha.");
+        setPasswordMessage(payload.error ?? "Não foi possível atualizar a senha.");
         return;
       }
 
@@ -132,7 +132,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
               <Settings2 className="h-5 w-5 text-blue-600 dark:text-sky-300" />
               Marca e textos
             </CardTitle>
-            <CardDescription>Atualize o nome da empresa, a logo e as frases exibidas na pagina publica.</CardDescription>
+            <CardDescription>Atualize o nome da empresa, a logo e as frases exibidas na página pública.</CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-5" onSubmit={handleSaveSettings}>
@@ -148,7 +148,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="brand_label">Rotulo da marca</Label>
+                  <Label htmlFor="brand_label">Rótulo da marca</Label>
                   <Input
                     id="brand_label"
                     value={settings.brand_label}
@@ -168,7 +168,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
                   placeholder="https://... ou /logo.png"
                 />
                 <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-                  Use uma URL publica ou um caminho interno do projeto. Se deixar em branco, o icone padrao continua.
+                  Use uma URL pública ou um caminho interno do projeto. Se deixar em branco, o ícone padrão continua.
                 </p>
               </div>
 
@@ -184,7 +184,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="hero_description">Descricao principal</Label>
+                <Label htmlFor="hero_description">Descrição principal</Label>
                 <Textarea
                   id="hero_description"
                   value={settings.hero_description}
@@ -196,7 +196,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="links_heading">Titulo da secao de links</Label>
+                  <Label htmlFor="links_heading">Título da seção de links</Label>
                   <Input
                     id="links_heading"
                     value={settings.links_heading}
@@ -206,12 +206,12 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="links_description">Descricao da secao de links</Label>
+                  <Label htmlFor="links_description">Descrição da seção de links</Label>
                   <Textarea
                     id="links_description"
                     value={settings.links_description}
                     onChange={(event) => updateField("links_description", event.target.value)}
-                    placeholder="Oriente o visitante sobre os canais disponiveis."
+                    placeholder="Oriente o visitante sobre os canais disponíveis."
                     required
                   />
                 </div>
@@ -225,7 +225,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
 
               <Button type="submit" disabled={isSavingSettings}>
                 <Save className="h-4 w-4" />
-                {isSavingSettings ? "Salvando..." : "Salvar configuracoes"}
+                {isSavingSettings ? "Salvando..." : "Salvar configurações"}
               </Button>
             </form>
           </CardContent>
@@ -235,7 +235,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-blue-600 dark:text-sky-300" />
-              Seguranca
+              Segurança
             </CardTitle>
             <CardDescription>Troque a senha de acesso do painel administrativo.</CardDescription>
           </CardHeader>
@@ -300,9 +300,9 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ImagePlus className="h-5 w-5 text-blue-600 dark:text-sky-300" />
-              Preview rapido
+              Preview rápido
             </CardTitle>
-            <CardDescription>Como a identidade principal aparece no topo da pagina publica.</CardDescription>
+            <CardDescription>Como a identidade principal aparece no topo da página pública.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
@@ -333,12 +333,12 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
         <Card className="border-white/70 bg-white/90 dark:border-slate-800 dark:bg-slate-950/90">
           <CardHeader>
             <CardTitle>Acesso atual</CardTitle>
-            <CardDescription>Resumo rapido da credencial administrativa em uso.</CardDescription>
+            <CardDescription>Resumo rápido da credencial administrativa em uso.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Login</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{account.login ?? "Nao definido"}</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{account.login ?? "Não definido"}</p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Origem</p>
@@ -346,12 +346,12 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
                 {account.credentialSource === "database"
                   ? "Banco de dados"
                   : account.credentialSource === "environment"
-                    ? "Variaveis de ambiente"
-                    : "Nao configurada"}
+                    ? "Variáveis de ambiente"
+                    : "Não configurada"}
               </p>
             </div>
             <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-              Contas baseadas no banco podem trocar a senha por aqui. Credenciais vindas de variaveis de ambiente devem
+              Contas baseadas no banco podem trocar a senha por aqui. Credenciais vindas de variáveis de ambiente devem
               ser rotacionadas fora do painel.
             </p>
           </CardContent>

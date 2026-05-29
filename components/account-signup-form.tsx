@@ -43,7 +43,7 @@ export function AccountSignupForm() {
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setError(payload.error ?? "Nao foi possivel criar a conta.");
+      setError(payload.error ?? "Não foi possível criar a conta.");
       return;
     }
 
@@ -98,7 +98,7 @@ export function AccountSignupForm() {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Minimo 8 caracteres"
+            placeholder="Mínimo 8 caracteres"
             autoComplete="new-password"
             required
           />

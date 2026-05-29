@@ -45,7 +45,7 @@ export type AdminAuditFilters = {
 };
 
 export const adminAuditActionOptions: Array<{ value: AdminAuditAction | "all"; label: string }> = [
-  { value: "all", label: "Todas as acoes" },
+  { value: "all", label: "Todas as ações" },
   { value: "auth.login.succeeded", label: "Login realizado" },
   { value: "auth.login.failed", label: "Login falhou" },
   { value: "auth.login.rate_limited", label: "Login bloqueado" },
@@ -54,20 +54,20 @@ export const adminAuditActionOptions: Array<{ value: AdminAuditAction | "all"; l
   { value: "auth.invite.accepted", label: "Convite aceito" },
   { value: "auth.account_invite.accepted", label: "Convite de empresa aceito" },
   { value: "admin.password.updated", label: "Senha atualizada" },
-  { value: "admin.settings.updated", label: "Configuracoes salvas" },
-  { value: "admin.user.invited", label: "Usuario convidado" },
+  { value: "admin.settings.updated", label: "Configurações salvas" },
+  { value: "admin.user.invited", label: "Usuário convidado" },
   { value: "admin.account.invited", label: "Empresa convidada" },
-  { value: "admin.user.status_updated", label: "Status de usuario alterado" },
+  { value: "admin.user.status_updated", label: "Status de usuário alterado" },
   { value: "admin.link.created", label: "Link criado" },
   { value: "admin.link.updated", label: "Link atualizado" },
   { value: "admin.link.deleted", label: "Link removido" }
 ];
 
 export const adminAuditTimeRangeOptions: Array<{ value: AdminAuditTimeRange; label: string }> = [
-  { value: "24h", label: "Ultimas 24h" },
-  { value: "7d", label: "Ultimos 7 dias" },
-  { value: "30d", label: "Ultimos 30 dias" },
-  { value: "all", label: "Todo o periodo" }
+  { value: "24h", label: "Últimas 24h" },
+  { value: "7d", label: "Últimos 7 dias" },
+  { value: "30d", label: "Últimos 30 dias" },
+  { value: "all", label: "Todo o período" }
 ];
 
 export const defaultAdminAuditFilters: AdminAuditFilters = {

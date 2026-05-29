@@ -47,7 +47,7 @@ function redirectToLogin() {
 async function readJsonOrThrow<T>(response: Response) {
   if (response.status === 401) {
     redirectToLogin();
-    throw new Error("Sessao expirada.");
+    throw new Error("Sessão expirada.");
   }
 
   return (await response.json()) as T;
@@ -115,7 +115,7 @@ export function AdminUserManager({ initialUsers, currentRole }: AdminUserManager
       const payload = await readJsonOrThrow<{ error?: string; data?: AdminInviteResult }>(response);
 
       if (!response.ok || !payload.data) {
-        setTeamMessage(payload.error ?? "Nao foi possivel criar o convite.");
+        setTeamMessage(payload.error ?? "Não foi possível criar o convite.");
         return;
       }
 
@@ -141,7 +141,7 @@ export function AdminUserManager({ initialUsers, currentRole }: AdminUserManager
       const payload = await readJsonOrThrow<{ error?: string; data?: AccountOwnerInviteResult }>(response);
 
       if (!response.ok || !payload.data) {
-        setAccountMessage(payload.error ?? "Nao foi possivel criar o convite da empresa.");
+        setAccountMessage(payload.error ?? "Não foi possível criar o convite da empresa.");
         return;
       }
 
@@ -164,12 +164,12 @@ export function AdminUserManager({ initialUsers, currentRole }: AdminUserManager
       const payload = await readJsonOrThrow<{ error?: string; data?: AdminUser }>(response);
 
       if (!response.ok || !payload.data) {
-        setTeamMessage(payload.error ?? "Nao foi possivel atualizar o usuario.");
+        setTeamMessage(payload.error ?? "Não foi possível atualizar o usuário.");
         return;
       }
 
       await loadUsers();
-      setTeamMessage(status === "active" ? "Usuario reativado." : "Usuario inativado.");
+      setTeamMessage(status === "active" ? "Usuário reativado." : "Usuário inativado.");
     });
   }
 
@@ -200,7 +200,7 @@ export function AdminUserManager({ initialUsers, currentRole }: AdminUserManager
                   Convidar empresa
                 </CardTitle>
                 <CardDescription>
-                  Gere um link privado para uma nova empresa criar uma conta separada, com links e dados proprios.
+                  Gere um link privado para uma nova empresa criar uma conta separada, com links e dados próprios.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -217,12 +217,12 @@ export function AdminUserManager({ initialUsers, currentRole }: AdminUserManager
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="account-owner-name">Responsavel</Label>
+                    <Label htmlFor="account-owner-name">Responsável</Label>
                     <Input
                       id="account-owner-name"
                       value={accountInviteForm.ownerName}
                       onChange={(event) => setAccountInviteForm({ ...accountInviteForm, ownerName: event.target.value })}
-                      placeholder="Nome da pessoa responsavel"
+                      placeholder="Nome da pessoa responsável"
                       required
                     />
                   </div>
@@ -287,7 +287,7 @@ export function AdminUserManager({ initialUsers, currentRole }: AdminUserManager
                     id="invite-name"
                     value={teamInviteForm.name}
                     onChange={(event) => setTeamInviteForm({ ...teamInviteForm, name: event.target.value })}
-                    placeholder="Nome do usuario"
+                      placeholder="Nome do usuário"
                     required
                   />
                 </div>
@@ -351,7 +351,7 @@ export function AdminUserManager({ initialUsers, currentRole }: AdminUserManager
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle>Usuarios do painel</CardTitle>
+            <CardTitle>Usuários do painel</CardTitle>
             <CardDescription>Controle quem pode acessar esta conta e seus links administrativos.</CardDescription>
           </div>
           <Button type="button" variant="secondary" onClick={loadUsers}>

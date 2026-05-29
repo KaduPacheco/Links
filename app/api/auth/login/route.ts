@@ -25,7 +25,7 @@ function buildRateLimitResponse(error: Error) {
 
 export async function POST(request: Request) {
   if (!(await isAdminAuthConfigured())) {
-    return NextResponse.json({ error: (await getAdminAuthConfigError()) ?? "Auth admin nao configurada." }, { status: 503 });
+    return NextResponse.json({ error: (await getAdminAuthConfigError()) ?? "Autenticação administrativa não configurada." }, { status: 503 });
   }
 
   const body = (await request.json()) as LoginRequest;
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       userAgent
     });
 
-    return NextResponse.json({ error: "Credenciais invalidas." }, { status: 401 });
+    return NextResponse.json({ error: "Credenciais inválidas." }, { status: 401 });
   }
 
   await resetRateLimit(ADMIN_LOGIN_IP_RATE_LIMIT.action, clientIp);

@@ -15,7 +15,7 @@ export default async function BlogPage() {
           Blog {settings.company_name}
         </h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          Espaco preparado para artigos sobre jornada, ponto online, compliance trabalhista e gestao de equipes.
+          Espaço preparado para artigos sobre jornada, ponto online, compliance trabalhista e gestão de equipes.
         </p>
         <Link
           href="/"

@@ -49,7 +49,7 @@ export default async function AdminPage() {
             <div>
               <Badge>
                 <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                Painel protegido por sessao
+                Painel protegido por sessão
               </Badge>
               <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50">
                 Painel administrativo
@@ -65,14 +65,14 @@ export default async function AdminPage() {
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 dark:bg-sky-400 dark:text-slate-950 dark:hover:bg-sky-300"
             >
               <ArrowLeft className="h-4 w-4" />
-              Ver pagina publica
+              Ver página pública
             </Link>
             {currentAccount?.slug && currentAccount.slug !== "default" && (
               <Link
                 href={`/${currentAccount.slug}` as Route}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border bg-white px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
               >
-                Ver pagina da conta
+                Ver página da conta
               </Link>
             )}
             <AdminLogoutButton />

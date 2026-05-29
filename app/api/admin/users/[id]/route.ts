@@ -18,7 +18,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
     const session = await requireAdminSession();
 
     if (session.role === "editor") {
-      return NextResponse.json({ error: "Editores nao podem alterar o status de usuarios." }, { status: 403 });
+      return NextResponse.json({ error: "Editores não podem alterar o status de usuários." }, { status: 403 });
     }
 
     await consumeRateLimit(ADMIN_USER_STATUS_ACTOR_RATE_LIMIT, session.user_id);
@@ -27,11 +27,11 @@ export async function PUT(request: Request, { params }: RouteContext) {
     const targetUser = await getAdminUserById(params.id, session.account_id);
 
     if (!targetUser) {
-      return NextResponse.json({ error: "Usuario nao encontrado." }, { status: 404 });
+      return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
     }
 
     if (payload.status === "inactive" && targetUser.id === session.user_id) {
-      return NextResponse.json({ error: "Nao e permitido inativar a propria sessao por esta rota." }, { status: 400 });
+      return NextResponse.json({ error: "Não é permitido inativar a própria sessão por esta rota." }, { status: 400 });
     }
 
     if (targetUser.role === "owner" && session.role !== "owner") {
@@ -74,7 +74,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
     }
 
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro ao atualizar usuario." },
+      { error: error instanceof Error ? error.message : "Erro ao atualizar usuário." },
       { status: isAdminSessionRequiredError(error) ? 401 : 400 }
     );
   }

@@ -144,7 +144,7 @@ export function isPublicAccountSignupEnabled() {
 }
 
 export function getPublicAccountSignupDisabledMessage() {
-  return "Novas contas sao liberadas somente por convite privado enviado pelo responsavel da operacao.";
+  return "Novas contas são liberadas somente por convite privado enviado pelo responsável da operação.";
 }
 
 function mapAccountOwnerInvite(row: StoredAccountOwnerInvite): AccountOwnerInvite {
@@ -179,7 +179,7 @@ async function ensureUniqueAccountSlug(pool: ReturnType<typeof requirePool>, com
     slug = `${baseSlug}-${attempt + 1}`;
   }
 
-  throw new Error("Nao foi possivel gerar um slug unico para a conta.");
+  throw new Error("Não foi possível gerar um slug único para a conta.");
 }
 
 async function initializeProvisionedAccount(account: Account) {
@@ -223,7 +223,7 @@ async function provisionAccountWithOwner(
   );
 
   if (existingLogin.rows[0]) {
-    throw new Error("Ja existe uma conta cadastrada com este e-mail.");
+    throw new Error("Já existe uma conta cadastrada com este e-mail.");
   }
 
   const slug = await ensureUniqueAccountSlug(pool, input.companyName);
@@ -385,13 +385,13 @@ export async function isAdminAuthConfigured() {
 export async function getAdminAuthConfigError() {
   const credentials = await resolveAdminCredentials();
   const missing = [
-    !credentials ? "credenciais administrativas (banco ou variaveis ADMIN_EMAIL/ADMIN_USERNAME e ADMIN_PASSWORD)" : null,
+    !credentials ? "credenciais administrativas (banco ou variáveis ADMIN_EMAIL/ADMIN_USERNAME e ADMIN_PASSWORD)" : null,
     !(process.env.AUTH_SESSION_SECRET?.trim() || process.env.SESSION_SECRET?.trim())
       ? "AUTH_SESSION_SECRET ou SESSION_SECRET"
       : null
   ].filter(Boolean);
 
-  return missing.length ? `Auth admin incompleta. Defina: ${missing.join(", ")}.` : null;
+  return missing.length ? `Autenticação administrativa incompleta. Defina: ${missing.join(", ")}.` : null;
 }
 
 export async function getAdminAccountInfo(sessionUserId?: string, sessionAccountId = DEFAULT_ACCOUNT_ID): Promise<AdminAccountInfo> {
@@ -478,7 +478,7 @@ export async function updateAdminPassword(
     : await resolveAdminCredentials();
 
   if (!credentials) {
-    throw new Error("Auth admin nao configurada.");
+    throw new Error("Autenticação administrativa não configurada.");
   }
 
   const currentPasswordMatches =
@@ -487,12 +487,12 @@ export async function updateAdminPassword(
       : currentPassword === credentials.plainPassword;
 
   if (!currentPasswordMatches) {
-    throw new Error("A senha atual nao confere.");
+    throw new Error("A senha atual não confere.");
   }
 
   if (credentials.source !== "database") {
     throw new Error(
-      "Nao e permitido alterar a senha de uma credencial baseada em variaveis de ambiente pelo painel. Atualize a variavel segura do ambiente ou migre para um usuario do banco."
+      "Não é permitido alterar a senha de uma credencial baseada em variáveis de ambiente pelo painel. Atualize a variável segura do ambiente ou migre para um usuário do banco."
     );
   }
 
@@ -616,11 +616,11 @@ export async function createAdminInvite(
   );
 
   if (existing.rows[0] && existing.rows[0].account_id !== accountId) {
-    throw new Error("Este e-mail ja esta cadastrado em outra conta.");
+    throw new Error("Este e-mail já está cadastrado em outra conta.");
   }
 
   if (existing.rows[0]?.status === "active") {
-    throw new Error("Ja existe um usuario ativo com este e-mail.");
+    throw new Error("Já existe um usuário ativo com este e-mail.");
   }
 
   const { rows } = await pool.query<StoredAdminUser>(
@@ -746,7 +746,7 @@ export async function createAccountOwnerInvite(
   ]);
 
   if (existingAdminUser.rows[0]) {
-    throw new Error("Este e-mail ja esta em uso por uma conta existente.");
+    throw new Error("Este e-mail já está em uso por uma conta existente.");
   }
 
   const { rows } = await pool.query<StoredAccountOwnerInvite>(
@@ -897,7 +897,7 @@ export async function acceptAdminInvite(token: string, password: string) {
   );
 
   if (!rows[0]) {
-    throw new Error("Convite invalido ou ja utilizado.");
+    throw new Error("Convite inválido ou já utilizado.");
   }
 
   return mapAdminUser(rows[0]);
@@ -938,7 +938,7 @@ export async function acceptAccountOwnerInvite(token: string, password: string) 
     const invite = inviteResult.rows[0];
 
     if (!invite) {
-      throw new Error("Convite de empresa invalido ou ja utilizado.");
+      throw new Error("Convite de empresa inválido ou já utilizado.");
     }
 
     const result = await provisionAccountWithOwner(pool, {
@@ -1009,7 +1009,7 @@ export async function updateAdminUserStatus(id: string, status: "active" | "inac
   );
 
   if (!rows[0]) {
-    throw new Error("Usuario nao encontrado.");
+    throw new Error("Usuário não encontrado.");
   }
 
   return mapAdminUser(rows[0]);

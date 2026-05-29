@@ -2,12 +2,25 @@ import { unstable_noStore as noStore } from "next/cache";
 import { DEFAULT_ACCOUNT_ID } from "@/lib/accounts";
 import { getDatabaseSource, getPool, requirePool } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { normalizeLegacyCopy } from "@/lib/text-normalization";
 import { defaultSiteSettings, type SiteSettings } from "@/types/site-settings";
 
 type SiteSettingsRow = SiteSettings & {
   id: number;
   account_id: string;
 };
+
+function normalizeSiteSettings(settings: SiteSettings): SiteSettings {
+  return {
+    company_name: normalizeLegacyCopy(settings.company_name) ?? defaultSiteSettings.company_name,
+    brand_label: normalizeLegacyCopy(settings.brand_label) ?? defaultSiteSettings.brand_label,
+    company_logo_url: settings.company_logo_url,
+    hero_badge: normalizeLegacyCopy(settings.hero_badge) ?? defaultSiteSettings.hero_badge,
+    hero_description: normalizeLegacyCopy(settings.hero_description) ?? defaultSiteSettings.hero_description,
+    links_heading: normalizeLegacyCopy(settings.links_heading) ?? defaultSiteSettings.links_heading,
+    links_description: normalizeLegacyCopy(settings.links_description) ?? defaultSiteSettings.links_description
+  };
+}
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   return getSiteSettingsForAccount(DEFAULT_ACCOUNT_ID);
@@ -18,7 +31,7 @@ export async function getSiteSettingsForAccount(accountId = DEFAULT_ACCOUNT_ID):
   const pool = getPool();
 
   if (!pool) {
-    return defaultSiteSettings;
+    return normalizeSiteSettings(defaultSiteSettings);
   }
 
   try {
@@ -42,17 +55,17 @@ export async function getSiteSettingsForAccount(accountId = DEFAULT_ACCOUNT_ID):
     );
 
     if (!rows[0]) {
-      return defaultSiteSettings;
+      return normalizeSiteSettings(defaultSiteSettings);
     }
 
     const { id: _id, account_id: _accountId, ...settings } = rows[0];
-    return settings;
+    return normalizeSiteSettings(settings);
   } catch (error) {
     logger.error("PostgreSQL site settings query failed", error, {
       accountId,
       source: getDatabaseSource() ?? "unknown source"
     });
-    return defaultSiteSettings;
+    return normalizeSiteSettings(defaultSiteSettings);
   }
 }
 
@@ -134,5 +147,5 @@ export async function updateSiteSettings(payload: SiteSettings, accountId = DEFA
   );
 
   const { id: _id, account_id: _accountId, ...settings } = rows[0];
-  return settings;
+  return normalizeSiteSettings(settings);
 }

@@ -4,11 +4,22 @@ import { DEFAULT_ACCOUNT_ID } from "@/lib/accounts";
 import { getDatabaseSource, getPool, requirePool } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { seedLinks } from "@/lib/seed-links";
+import { normalizeLegacyCopy } from "@/lib/text-normalization";
 
-function normalizeLinkRow<T extends { category: string }>(row: T): T {
+function normalizeLinkRow<
+  T extends {
+    category: string;
+    title?: string;
+    description?: string | null;
+    lead_message?: string | null;
+  }
+>(row: T): T {
   return {
     ...row,
-    category: normalizeLinkCategory(row.category)
+    category: normalizeLinkCategory(row.category),
+    title: row.title ? normalizeLegacyCopy(row.title) ?? row.title : row.title,
+    description: typeof row.description === "string" ? normalizeLegacyCopy(row.description) : row.description,
+    lead_message: typeof row.lead_message === "string" ? normalizeLegacyCopy(row.lead_message) : row.lead_message
   };
 }
 
@@ -99,7 +110,7 @@ export async function createDemoLinksForAccount(accountId: string) {
       ]
     );
 
-      created.push(normalizeLinkRow(rows[0]));
+    created.push(normalizeLinkRow(rows[0]));
   }
 
   return created;
@@ -139,7 +150,7 @@ export async function updateLink(id: string, payload: LinkPayload, accountId = D
   );
 
   if (!rows[0]) {
-    throw new Error("Link não encontrado.");
+    throw new Error("Link n\u00e3o encontrado.");
   }
 
   return normalizeLinkRow(rows[0]);

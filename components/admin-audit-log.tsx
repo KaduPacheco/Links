@@ -32,7 +32,7 @@ function redirectToLogin() {
 async function readJsonOrThrow<T>(response: Response) {
   if (response.status === 401) {
     redirectToLogin();
-    throw new Error("Sessao expirada.");
+    throw new Error("Sessão expirada.");
   }
 
   return (await response.json()) as T;
@@ -56,11 +56,11 @@ function roleLabel(role: string | null) {
 
 function severityLabel(severity: AdminAuditSeverity) {
   if (severity === "critical") {
-    return "Critico";
+    return "Crítico";
   }
 
   if (severity === "warning") {
-    return "Atencao";
+    return "Atenção";
   }
 
   return "Info";
@@ -178,7 +178,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
     const payload = await readJsonOrThrow<AdminAuditPage & { error?: string }>(response);
 
     if (!response.ok) {
-      throw new Error(payload.error ?? "Nao foi possivel carregar a auditoria.");
+      throw new Error(payload.error ?? "Não foi possível carregar a auditoria.");
     }
 
     setEvents((current) => (mode === "replace" ? payload.data : [...current, ...payload.data]));
@@ -190,7 +190,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
       try {
         await loadPage("replace");
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Nao foi possivel atualizar a auditoria.");
+        setMessage(error instanceof Error ? error.message : "Não foi possível atualizar a auditoria.");
       }
     });
   }
@@ -200,7 +200,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
       try {
         await loadPage("replace");
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Nao foi possivel filtrar a auditoria.");
+        setMessage(error instanceof Error ? error.message : "Não foi possível filtrar a auditoria.");
       }
     });
   }
@@ -213,7 +213,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
       try {
         await loadPage("replace", nextFilters);
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Nao foi possivel limpar os filtros.");
+        setMessage(error instanceof Error ? error.message : "Não foi possível limpar os filtros.");
       }
     });
   }
@@ -223,7 +223,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
       try {
         await loadPage("append");
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar mais eventos.");
+        setMessage(error instanceof Error ? error.message : "Não foi possível carregar mais eventos.");
       }
     });
   }
@@ -237,7 +237,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
               <Activity className="h-5 w-5 text-amber-600 dark:text-amber-300" />
               Auditoria administrativa
             </CardTitle>
-            <CardDescription>Eventos recentes de autenticacao e alteracoes sensiveis na conta.</CardDescription>
+            <CardDescription>Eventos recentes de autenticação e alterações sensíveis na conta.</CardDescription>
           </div>
           <Button type="button" variant="secondary" onClick={refresh} disabled={isPending}>
             <RefreshCw className="h-4 w-4" />
@@ -251,11 +251,11 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
             <p className="mt-2 text-2xl font-black text-slate-950 dark:text-slate-50">{summary.total}</p>
           </div>
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-700 dark:text-red-200">Criticos</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-700 dark:text-red-200">Críticos</p>
             <p className="mt-2 text-2xl font-black text-red-700 dark:text-red-200">{summary.critical}</p>
           </div>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-500/10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-200">Atencao</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-200">Atenção</p>
             <p className="mt-2 text-2xl font-black text-amber-700 dark:text-amber-200">{summary.warning}</p>
           </div>
           <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-sky-500/30 dark:bg-sky-500/10">
@@ -268,7 +268,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              Eventos criticos encontrados nos filtros atuais. Vale revisar falhas de login e bloqueios recentes.
+              Eventos críticos encontrados nos filtros atuais. Vale revisar falhas de login e bloqueios recentes.
             </div>
           </div>
         )}
@@ -276,7 +276,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
       <CardContent className="space-y-4">
         <div className="grid gap-4 rounded-2xl border bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900 md:grid-cols-[1fr_1fr_160px_auto_auto]">
           <div className="space-y-2">
-            <Label htmlFor="audit-action">Acao</Label>
+            <Label htmlFor="audit-action">Ação</Label>
             <Select
               id="audit-action"
               value={filters.action}
@@ -303,7 +303,7 @@ export function AdminAuditLog({ initialPage }: AdminAuditLogProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="audit-time-range">Periodo</Label>
+            <Label htmlFor="audit-time-range">Período</Label>
             <Select
               id="audit-time-range"
               value={filters.timeRange}

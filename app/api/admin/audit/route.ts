@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     const session = await requireAdminSession();
 
     if (session.role === "editor") {
-      return NextResponse.json({ error: "Editores nao podem visualizar a auditoria." }, { status: 403 });
+      return NextResponse.json({ error: "Editores não podem visualizar a auditoria." }, { status: 403 });
     }
 
     const url = new URL(request.url);

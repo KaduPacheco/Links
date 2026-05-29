@@ -36,7 +36,7 @@ export function AdminAcceptInviteForm({ token }: AdminAcceptInviteFormProps) {
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setMessage(payload.error ?? "Nao foi possivel aceitar o convite.");
+      setMessage(payload.error ?? "Não foi possível aceitar o convite.");
       return;
     }
 

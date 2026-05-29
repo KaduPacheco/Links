@@ -23,7 +23,7 @@ export default async function AdminLoginPage() {
               <LockKeyhole className="h-5 w-5 text-blue-600 dark:text-sky-300" />
               Acesso administrativo
             </CardTitle>
-            <CardDescription>Entre para gerenciar links, mensagens automaticas e analytics.</CardDescription>
+            <CardDescription>Entre para gerenciar links, mensagens automáticas e analytics.</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -33,11 +33,11 @@ export default async function AdminLoginPage() {
             </Suspense>
           ) : (
             <p className="rounded-xl bg-amber-50 p-3 text-sm font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
-              {authError ?? "Auth admin nao configurada."}
+              {authError ?? "Autenticação administrativa não configurada."}
             </p>
           )}
           <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-            Novos acessos sao liberados pelo dono da conta por meio de convite.
+            Novos acessos são liberados pelo dono da conta por meio de convite.
           </p>
         </CardContent>
       </Card>

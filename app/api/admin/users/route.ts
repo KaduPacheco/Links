@@ -14,7 +14,7 @@ export async function GET() {
     return NextResponse.json({ data });
   } catch (error) {
     return NextResponse.json(
-      { error: isAdminSessionRequiredError(error) ? error.message : "Erro ao carregar usuarios." },
+      { error: isAdminSessionRequiredError(error) ? error.message : "Erro ao carregar usuários." },
       { status: isAdminSessionRequiredError(error) ? 401 : 400 }
     );
   }
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const session = await requireAdminSession();
 
     if (session.role === "editor") {
-      return NextResponse.json({ error: "Editores nao podem criar convites de acesso." }, { status: 403 });
+      return NextResponse.json({ error: "Editores não podem criar convites de acesso." }, { status: 403 });
     }
 
     await consumeRateLimit(ADMIN_USER_INVITE_ACTOR_RATE_LIMIT, session.user_id);
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro ao convidar usuario." },
+      { error: error instanceof Error ? error.message : "Erro ao convidar usuário." },
       { status: isAdminSessionRequiredError(error) ? 401 : 400 }
     );
   }

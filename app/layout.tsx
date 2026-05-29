@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Links oficiais",
-  description: "Pagina oficial de links para demonstracao, atendimento, conteudos e suporte.",
+  description: "Página oficial de links para demonstração, atendimento, conteúdos e suporte.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000")
 };
 

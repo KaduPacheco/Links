@@ -42,11 +42,11 @@ export default async function AccountSignupPage() {
           ) : (
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-medium text-blue-900 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-100">
               O dono da conta pode gerar um link de convite dentro do painel e enviar para a pessoa concluir o cadastro
-              com senha propria.
+              com senha própria.
             </div>
           )}
           <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-            Ja recebeu seu acesso?{" "}
+            Já recebeu seu acesso?{" "}
             <Link href="/admin/login" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-sky-300">
               Entrar no painel
             </Link>

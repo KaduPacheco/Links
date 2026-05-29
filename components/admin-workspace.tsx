@@ -53,11 +53,11 @@ export function AdminWorkspace({
           onClick={() => setTab("settings")}
         >
           <Settings2 className="h-4 w-4" />
-          Configuracoes
+          Configurações
         </Button>
         <Button type="button" variant={tab === "users" ? "default" : "secondary"} onClick={() => setTab("users")}>
           <UsersRound className="h-4 w-4" />
-          Usuarios
+          Usuários
         </Button>
         {canViewAudit && (
           <Button type="button" variant={tab === "audit" ? "default" : "secondary"} onClick={() => setTab("audit")}>

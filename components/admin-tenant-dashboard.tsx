@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Activity, AlertTriangle, BarChart3, MousePointerClick, RefreshCw, ShieldAlert, UsersRound } from "lucide-react";
+import { AlertTriangle, BarChart3, MousePointerClick, RefreshCw, ShieldAlert, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ function redirectToLogin() {
 async function readJsonOrThrow<T>(response: Response) {
   if (response.status === 401) {
     redirectToLogin();
-    throw new Error("Sessao expirada.");
+    throw new Error("Sessão expirada.");
   }
 
   return (await response.json()) as T;
@@ -61,13 +61,13 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
         const payload = await readJsonOrThrow<{ data?: TenantDashboardData; error?: string }>(response);
 
         if (!response.ok || !payload.data) {
-          setMessage(payload.error ?? "Nao foi possivel atualizar o dashboard.");
+          setMessage(payload.error ?? "Não foi possível atualizar o dashboard.");
           return;
         }
 
         setDashboard(payload.data);
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Nao foi possivel atualizar o dashboard.");
+        setMessage(error instanceof Error ? error.message : "Não foi possível atualizar o dashboard.");
       }
     });
   }
@@ -76,11 +76,11 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
     <div className="space-y-6">
       <div className="flex flex-col gap-3 rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/90 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
-          <Badge>Visao SaaS da conta</Badge>
+          <Badge>Visão SaaS da conta</Badge>
           <div>
             <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-slate-50">Uso da conta por tenant</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Acompanhe adocao, atividade recente, saude operacional e sinais de risco desta conta.
+              Acompanhe adoção, atividade recente, saúde operacional e sinais de risco desta conta.
             </p>
           </div>
         </div>
@@ -113,7 +113,7 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Cliques ultimos 7 dias</CardDescription>
+            <CardDescription>Cliques últimos 7 dias</CardDescription>
             <CardTitle className="flex items-center gap-2">
               <MousePointerClick className="h-5 w-5 text-blue-600 dark:text-sky-300" />
               {dashboard.overview.clicksLast7Days}
@@ -131,7 +131,7 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Eventos criticos 24h</CardDescription>
+            <CardDescription>Eventos críticos 24h</CardDescription>
             <CardTitle className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-300" />
               {dashboard.overview.criticalEventsLast24h}
@@ -143,12 +143,12 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Tendencia dos ultimos 7 dias</CardTitle>
-            <CardDescription>Cliques e autenticacoes diarias da conta.</CardDescription>
+            <CardTitle>Tendência dos últimos 7 dias</CardTitle>
+            <CardDescription>Cliques e autenticações diárias da conta.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {dashboard.trends.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">Sem dados suficientes para montar tendencia.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Sem dados suficientes para montar tendência.</p>
             ) : (
               <div className="space-y-4">
                 {dashboard.trends.map((point) => (
@@ -177,7 +177,9 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
                       <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800">
                         <div
                           className="h-2 rounded-full bg-red-500 dark:bg-red-300"
-                          style={{ width: `${Math.max((point.failedLogins / trendMax) * 100, point.failedLogins > 0 ? 6 : 0)}%` }}
+                          style={{
+                            width: `${Math.max((point.failedLogins / trendMax) * 100, point.failedLogins > 0 ? 6 : 0)}%`
+                          }}
                         />
                       </div>
                     </div>
@@ -191,7 +193,7 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
         <Card>
           <CardHeader>
             <CardTitle>Alertas da conta</CardTitle>
-            <CardDescription>Sinais recentes de risco, friccao ou baixa adocao.</CardDescription>
+            <CardDescription>Sinais recentes de risco, fricção ou baixa adoção.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {dashboard.alerts.map((alert) => (
@@ -212,7 +214,7 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
       <section className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Links com maior tracao</CardTitle>
+            <CardTitle>Links com maior tração</CardTitle>
             <CardDescription>Top links por volume acumulado de cliques.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -236,7 +238,7 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
                       )}
                     </div>
                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                      Ultimo clique: {formatDateTime(link.lastClickedAt)}
+                      Último clique: {formatDateTime(link.lastClickedAt)}
                     </p>
                   </div>
                   <div className="text-left sm:text-right">
@@ -251,8 +253,8 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
 
         <Card>
           <CardHeader>
-            <CardTitle>Composicao por categoria</CardTitle>
-            <CardDescription>Distribuicao de links e tracao por categoria da conta.</CardDescription>
+            <CardTitle>Composição por categoria</CardTitle>
+            <CardDescription>Distribuição de links e tração por categoria da conta.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {dashboard.categories.length === 0 ? (
@@ -288,7 +290,7 @@ export function AdminTenantDashboard({ initialData }: AdminTenantDashboardProps)
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Cliques ultimos 30 dias</CardDescription>
+            <CardDescription>Cliques últimos 30 dias</CardDescription>
             <CardTitle>{dashboard.overview.clicksLast30Days}</CardTitle>
           </CardHeader>
         </Card>

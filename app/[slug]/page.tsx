@@ -41,13 +41,12 @@ export default async function PublicAccountPage({ params }: PublicAccountPagePro
       <div className="absolute left-1/2 top-0 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-300/25 blur-3xl dark:bg-sky-500/20" />
       <div className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[1fr_440px]">
         <section className="animate-fade-up space-y-8">
-          <BrandMark settings={settings} />
+          <BrandMark hero settings={settings} />
           <div className="max-w-2xl space-y-5">
             <Badge>{settings.hero_badge}</Badge>
             <h1 className="text-4xl font-black tracking-[-0.04em] text-slate-950 dark:text-slate-50 sm:text-6xl">
-              {settings.company_name}
+              Controle de ponto simples, seguro e rastreável para sua empresa.
             </h1>
-            <p className="text-lg leading-8 text-slate-600 dark:text-slate-300 sm:text-xl">{settings.hero_description}</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">

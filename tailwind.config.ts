@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
 
 const config: Config = {
   darkMode: ["class"],
@@ -10,6 +11,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Preserve existing utility contracts while mapping legacy accents to Jornada's palette.
+        blue: colors.teal,
+        sky: colors.teal,
+        cyan: colors.emerald,
+        emerald: colors.emerald,
+        navy: "#0B1B32",
+        jornada: { teal: "#14B8A6", mint: "#2AF598" },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -32,7 +40,7 @@ const config: Config = {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui"]
       },
       boxShadow: {
-        glow: "0 24px 80px rgba(37, 99, 235, 0.22)"
+        glow: "0 24px 80px rgba(20, 184, 166, 0.22)"
       },
       keyframes: {
         "fade-up": {

@@ -1,6 +1,6 @@
-# Ponto Eletrônico Links
+# Jornada Links
 
-Ferramenta full-stack de gestão de links para a marca **Ponto Eletrônico**, inspirada em bio pages profissionais como Linktree, Shorby e Beacons.
+Ferramenta full-stack de gestão de links para a marca **Jornada**, inspirada em bio pages profissionais como Linktree, Shorby e Beacons.
 
 ## Stack
 

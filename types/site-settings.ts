@@ -9,11 +9,11 @@ export type SiteSettings = {
 };
 
 export const defaultSiteSettings: SiteSettings = {
-  company_name: "Ponto Eletr\u00f4nico",
-  brand_label: "Links oficiais",
+  company_name: "Jornada",
+  brand_label: "Mais controle. Menos retrabalho.",
   company_logo_url: null,
-  hero_badge: "Controle de jornada simples, seguro e inteligente",
-  hero_description: "Sistema inteligente para controle de jornada, ponto online e gest\u00e3o de equipes.",
-  links_heading: "Links oficiais",
-  links_description: "Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais."
+  hero_badge: "Mais controle. Menos retrabalho.",
+  hero_description: "Controle de ponto simples, seguro e rastreável para sua empresa.",
+  links_heading: "Canais oficiais",
+  links_description: "Conheça as soluções, conteúdos e canais oficiais da Jornada."
 };

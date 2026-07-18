@@ -18,8 +18,8 @@ export function Switch({ checked, onCheckedChange, label }: SwitchProps) {
       aria-label={label}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "relative h-7 w-12 rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-        checked ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"
+        "relative h-7 w-12 rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500",
+        checked ? "bg-teal-500 dark:bg-[#2AF598]" : "bg-slate-300 dark:bg-slate-700"
       )}
     >
       <span

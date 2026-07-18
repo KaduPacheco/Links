@@ -4,8 +4,36 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Links oficiais",
-  description: "Página oficial de links para demonstração, atendimento, conteúdos e suporte.",
+  title: { default: "Jornada | Links oficiais", template: "%s | Jornada" },
+  description: "Controle de ponto simples, seguro e rastreável para sua empresa.",
+  applicationName: "Jornada",
+  keywords: ["Jornada", "controle de ponto", "gestão de ponto", "ponto eletrônico"],
+  authors: [{ name: "Jornada" }],
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=5", type: "image/x-icon" },
+      { url: "/favicon-32.png?v=5", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48.png?v=5", type: "image/png", sizes: "48x48" },
+      { url: "/icon-192.png?v=5", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png?v=5", type: "image/png", sizes: "512x512" }
+    ],
+    apple: [{ url: "/apple-touch-icon.png?v=5", type: "image/png", sizes: "180x180" }]
+  },
+  openGraph: {
+    title: "Jornada",
+    description: "Controle de ponto simples, seguro e rastreável para sua empresa.",
+    siteName: "Jornada",
+    locale: "pt_BR",
+    type: "website",
+    images: [{ url: "/assets/jornada/logo-jornada-light.png", alt: "Logo Jornada" }]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jornada",
+    description: "Controle de ponto simples, seguro e rastreável para sua empresa.",
+    images: ["/assets/jornada/logo-jornada-light.png"]
+  },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000")
 };
 
@@ -18,7 +46,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             __html: `
               (function() {
                 try {
-                  var storedTheme = localStorage.getItem("links-theme");
+                  var storedTheme = localStorage.getItem("jornada-theme");
                   var theme = storedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
                   document.documentElement.classList.toggle("dark", theme === "dark");
                   document.documentElement.style.colorScheme = theme;

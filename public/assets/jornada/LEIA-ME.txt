@@ -1,0 +1,21 @@
+ASSETS OFICIAIS — JORNADA
+
+logo-jornada-light.png
+Use no tema claro. Fundo transparente, palavra Jornada em navy.
+
+logo-jornada-dark.png
+Use no tema escuro. Fundo transparente, palavra Jornada em branco.
+
+simbolo-jornada.png
+Símbolo isolado com fundo transparente. Use dentro da página.
+
+icone-app-jornada.png
+Master quadrado 1024×1024 para ícone do aplicativo e PWA.
+
+favicon-32.png / favicon-48.png / favicon.ico
+Use na aba do navegador.
+
+apple-touch-icon.png / icon-192.png / icon-512.png
+Use no manifest PWA e em dispositivos móveis.
+
+Importante: não redesenhar, recolorir, recortar ou inserir caixas de fundo nas logos.

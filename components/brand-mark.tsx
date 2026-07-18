@@ -1,31 +1,32 @@
-import { Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { defaultSiteSettings, type SiteSettings } from "@/types/site-settings";
 
 type BrandMarkProps = {
   compact?: boolean;
+  hero?: boolean;
   className?: string;
   settings?: SiteSettings;
 };
 
-export function BrandMark({ compact = false, className, settings = defaultSiteSettings }: BrandMarkProps) {
+export const BRAND_SYMBOL = "/assets/jornada/simbolo-jornada.png";
+export const BRAND_LOGO_LIGHT = "/assets/jornada/logo-jornada-light.png";
+export const BRAND_LOGO_DARK = "/assets/jornada/logo-jornada-dark.png";
+
+export function BrandMark({ compact = false, hero = false, className, settings = defaultSiteSettings }: BrandMarkProps) {
+  const logoSize = hero ? "w-[240px]" : "h-14 w-auto";
+
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-glow">
-        {settings.company_logo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={settings.company_logo_url} alt={settings.company_name} className="h-full w-full object-cover" />
-        ) : (
-          <Clock3 className="h-6 w-6" aria-hidden="true" />
-        )}
-      </div>
-      {!compact && (
-        <div>
-          <p className="text-lg font-black tracking-tight text-slate-950 dark:text-slate-50">{settings.company_name}</p>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600 dark:text-sky-300">
-            {settings.brand_label}
-          </p>
-        </div>
+    <div className={cn("flex items-center", className)}>
+      {compact ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={BRAND_SYMBOL} alt={`Símbolo ${settings.company_name}`} className="h-12 w-12 object-contain" />
+      ) : (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND_LOGO_LIGHT} alt={`Logo ${settings.company_name}`} className={cn("block h-auto dark:hidden", logoSize)} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND_LOGO_DARK} alt={`Logo ${settings.company_name}`} className={cn("hidden h-auto dark:block", logoSize)} />
+        </>
       )}
     </div>
   );

@@ -13,14 +13,14 @@ export function ThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={toggleTheme}
       className={cn(
-        "inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-lg shadow-slate-900/10 backdrop-blur transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-100 dark:shadow-black/30 dark:hover:bg-slate-900",
+        "inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-lg shadow-[#0B1B32]/10 backdrop-blur transition hover:-translate-y-0.5 hover:bg-teal-50 dark:border-white/10 dark:bg-[#0B1B32]/90 dark:text-slate-100 dark:shadow-black/30 dark:hover:bg-[#102641]",
         className
       )}
       aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
       aria-pressed={isDark}
       title={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
     >
-      <span className="relative flex h-8 w-14 items-center rounded-full bg-slate-200 p-1 dark:bg-slate-700">
+      <span className="relative flex h-8 w-14 items-center rounded-full bg-teal-100 p-1 dark:bg-slate-700">
         <span
           className={cn(
             "absolute h-6 w-6 rounded-full bg-white shadow transition-transform dark:bg-slate-950",
@@ -28,9 +28,9 @@ export function ThemeToggle({ className }: { className?: string }) {
           )}
         />
         <SunMedium className="relative z-10 h-3.5 w-3.5 text-amber-500" />
-        <Moon className="relative z-10 ml-auto h-3.5 w-3.5 text-slate-500 dark:text-sky-300" />
+        <Moon className="relative z-10 ml-auto h-3.5 w-3.5 text-slate-500 dark:text-[#2AF598]" />
       </span>
-      <span>{isDark ? "Modo escuro" : "Modo claro"}</span>
+      <span className="hidden sm:inline">{isDark ? "Modo escuro" : "Modo claro"}</span>
     </button>
   );
 }

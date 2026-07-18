@@ -12,7 +12,7 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = "links-theme";
+const STORAGE_KEY = "jornada-theme";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;

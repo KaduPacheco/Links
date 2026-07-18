@@ -188,12 +188,12 @@ async function initializeProvisionedAccount(account: Account) {
       {
         ...defaultSiteSettings,
         company_name: account.name,
-        brand_label: "Links oficiais",
+        brand_label: "Mais controle. Menos retrabalho.",
         company_logo_url: null,
-        hero_badge: "Canais oficiais da empresa",
-        hero_description: `Encontre os principais canais, materiais e contatos oficiais de ${account.name}.`,
-        links_heading: "Links oficiais",
-        links_description: "Acesse os principais canais oficiais desta empresa."
+        hero_badge: "Mais controle. Menos retrabalho.",
+        hero_description: "Controle de ponto simples, seguro e rastreável para sua empresa.",
+        links_heading: "Canais oficiais",
+        links_description: "Conheça as soluções, conteúdos e canais oficiais da Jornada."
       },
       account.id
     );

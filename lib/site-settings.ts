@@ -10,6 +10,11 @@ type SiteSettingsRow = SiteSettings & {
   account_id: string;
 };
 
+function normalizeLinksHeading(value: string) {
+  const normalized = normalizeLegacyCopy(value);
+  return normalized === "Conheça a Jornada" ? defaultSiteSettings.links_heading : normalized;
+}
+
 function normalizeSiteSettings(settings: SiteSettings): SiteSettings {
   return {
     company_name: normalizeLegacyCopy(settings.company_name) ?? defaultSiteSettings.company_name,
@@ -17,7 +22,7 @@ function normalizeSiteSettings(settings: SiteSettings): SiteSettings {
     company_logo_url: settings.company_logo_url,
     hero_badge: normalizeLegacyCopy(settings.hero_badge) ?? defaultSiteSettings.hero_badge,
     hero_description: normalizeLegacyCopy(settings.hero_description) ?? defaultSiteSettings.hero_description,
-    links_heading: normalizeLegacyCopy(settings.links_heading) ?? defaultSiteSettings.links_heading,
+    links_heading: normalizeLinksHeading(settings.links_heading) ?? defaultSiteSettings.links_heading,
     links_description: normalizeLegacyCopy(settings.links_description) ?? defaultSiteSettings.links_description
   };
 }

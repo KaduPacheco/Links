@@ -3,6 +3,7 @@
 import { FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, KeyRound, Save, Settings2 } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -153,7 +154,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
                     id="brand_label"
                     value={settings.brand_label}
                     onChange={(event) => updateField("brand_label", event.target.value)}
-                    placeholder="Links oficiais"
+                    placeholder="Mais controle. Menos retrabalho."
                     required
                   />
                 </div>
@@ -178,7 +179,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
                   id="hero_badge"
                   value={settings.hero_badge}
                   onChange={(event) => updateField("hero_badge", event.target.value)}
-                  placeholder="Controle de jornada simples, seguro e inteligente"
+                  placeholder="Mais controle. Menos retrabalho."
                   required
                 />
               </div>
@@ -201,7 +202,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
                     id="links_heading"
                     value={settings.links_heading}
                     onChange={(event) => updateField("links_heading", event.target.value)}
-                    placeholder="Links oficiais"
+                    placeholder="Canais oficiais"
                     required
                   />
                 </div>
@@ -306,22 +307,7 @@ export function AdminSettingsManager({ initialSettings, initialAccount }: AdminS
           </CardHeader>
           <CardContent>
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
-              <div className="flex items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white">
-                  {settings.company_logo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={settings.company_logo_url} alt={settings.company_name} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-lg font-black">{settings.company_name.slice(0, 2).toUpperCase()}</span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-lg font-black text-slate-950 dark:text-slate-50">{settings.company_name}</p>
-                  <p className="truncate text-xs font-semibold uppercase tracking-[0.24em] text-blue-600 dark:text-sky-300">
-                    {settings.brand_label}
-                  </p>
-                </div>
-              </div>
+              <BrandMark settings={settings} />
               <div className="mt-5 space-y-3">
                 <Badge>{settings.hero_badge}</Badge>
                 <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{settings.hero_description}</p>

@@ -9,7 +9,7 @@ create table if not exists accounts (
 );
 
 insert into accounts (id, name, slug)
-values ('00000000-0000-0000-0000-000000000001', 'Ponto Eletronico', 'default')
+values ('00000000-0000-0000-0000-000000000001', 'Jornada', 'default')
 on conflict (id) do nothing;
 
 create table if not exists links (
@@ -37,13 +37,13 @@ add column if not exists lead_message text;
 create table if not exists site_settings (
   id integer primary key default 1,
   account_id uuid not null default '00000000-0000-0000-0000-000000000001' references accounts(id) on delete cascade,
-  company_name text not null default 'Ponto Eletronico',
-  brand_label text not null default 'Links oficiais',
+  company_name text not null default 'Jornada',
+  brand_label text not null default 'Mais controle. Menos retrabalho.',
   company_logo_url text,
-  hero_badge text not null default 'Controle de jornada simples, seguro e inteligente',
-  hero_description text not null default 'Sistema inteligente para controle de jornada, ponto online e gestao de equipes.',
-  links_heading text not null default 'Links oficiais',
-  links_description text not null default 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.',
+  hero_badge text not null default 'Mais controle. Menos retrabalho.',
+  hero_description text not null default 'Controle de ponto simples, seguro e rastreável para sua empresa.',
+  links_heading text not null default 'Canais oficiais',
+  links_description text not null default 'Conheça as soluções, conteúdos e canais oficiais da Jornada.',
   updated_at timestamptz not null default now()
 );
 
@@ -144,15 +144,15 @@ group by links.id;
 
 insert into links (account_id, title, url, description, icon, category, lead_message, is_active, display_order)
 values
-  ('00000000-0000-0000-0000-000000000001', 'Conheca o Ponto Eletronico', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar controle de jornada e gestao de equipes.', 'MonitorCheck', 'Comercial', null, true, 1),
+  ('00000000-0000-0000-0000-000000000001', 'Conheça a Jornada', 'https://pontoeletronicobr.vercel.app/', 'Veja como simplificar o controle de ponto e a gestão da sua equipe.', 'MonitorCheck', 'Comercial', null, true, 1),
   ('00000000-0000-0000-0000-000000000001', 'Solicitar Demonstracao', 'https://wa.me/5500000000000', 'Converse com nosso time e receba uma apresentacao guiada.', 'CalendarClock', 'Comercial', 'Ola! Vim pelo link "{{origem}}" e gostaria de solicitar uma demonstracao.', true, 2),
   ('00000000-0000-0000-0000-000000000001', 'Falar com Atendimento', 'https://wa.me/5500000000000', 'Tire duvidas rapidamente pelo WhatsApp.', 'MessagesSquare', 'Suporte', 'Ola! Vim pelo link "{{origem}}" e preciso de atendimento.', true, 3),
   ('00000000-0000-0000-0000-000000000001', 'Instagram Oficial', 'https://www.instagram.com/pontoeletronicobr/', 'Acompanhe novidades, dicas e conteudos da marca.', 'Instagram', 'Redes sociais', null, true, 4),
-  ('00000000-0000-0000-0000-000000000001', 'Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'ConteÃºdo', null, true, 5),
+  ('00000000-0000-0000-0000-000000000001', 'Blog', '/blog', 'Artigos sobre jornada, compliance e produtividade.', 'Newspaper', 'Conteúdo', null, true, 5),
   ('00000000-0000-0000-0000-000000000001', 'Materiais Ricos', '/materiais', 'Guias, checklists e conteudos praticos para RH.', 'FileText', 'Materiais', null, true, 6)
 on conflict do nothing;
 
 insert into site_settings (id, account_id, company_name, brand_label, company_logo_url, hero_badge, hero_description, links_heading, links_description)
 values
-  (1, '00000000-0000-0000-0000-000000000001', 'Ponto Eletronico', 'Links oficiais', null, 'Controle de jornada simples, seguro e inteligente', 'Sistema inteligente para controle de jornada, ponto online e gestao de equipes.', 'Links oficiais', 'Escolha o canal ideal para conhecer o sistema, falar com o time ou acessar materiais.')
+  (1, '00000000-0000-0000-0000-000000000001', 'Jornada', 'Mais controle. Menos retrabalho.', null, 'Mais controle. Menos retrabalho.', 'Controle de ponto simples, seguro e rastreável para sua empresa.', 'Canais oficiais', 'Conheça as soluções, conteúdos e canais oficiais da Jornada.')
 on conflict (id) do nothing;
